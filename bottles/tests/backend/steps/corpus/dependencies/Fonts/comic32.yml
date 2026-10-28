@@ -1,0 +1,27 @@
+Name: comic32
+Description: Comic Sans MS Font
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: cab_extract
+  file_name: comic32.exe
+  url: https://mirrors.kernel.org/gentoo/distfiles/52/comic32.exe
+  file_checksum: 2b30de40bb5e803a0452c7715fc835d1
+  file_size: 246008
+  dest: temp/comic32
+  
+- action: install_cab_fonts
+  url: temp/comic32
+  fonts:
+  - Comicbd.TTF
+  - Comic.TTF
+
+- action: register_font
+  name: Comic Sans MS
+  file: Comic.TTF
+
+- action: register_font
+  name: Comic Sans MS Bold
+  file: Comicbd.TTF

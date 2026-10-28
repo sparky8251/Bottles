@@ -1,0 +1,25 @@
+Name: powershell_core
+Description: Microsoft PowerShell Core
+Provider: Microsoft
+License: MIT
+License_url: https://github.com/PowerShell/PowerShell/blob/master/LICENSE.txt
+Dependencies: []
+Steps:
+- action: install_msi
+  file_name: PowerShell-7.4.11-win-x86.msi
+  url: https://github.com/PowerShell/PowerShell/releases/download/v7.4.11/PowerShell-7.4.11-win-x86.msi
+  rename: PowerShell-7.4.11-win-x86.msi
+  file_checksum: dbc654619685cb3ea077dc041c65c49c
+  file_size: 102121472
+  arguments: /quiet ENABLE_PSREMOTING=0 REGISTER_MANIFEST=1 DISABLE_TELEMETRY=1 USE_MU=0 ENABLE_MU=0 LAUNCHAPPONEXIT=0
+  for:
+    - win32
+- action: install_msi
+  file_name: PowerShell-7.4.11-win-x64.msi
+  url: https://github.com/PowerShell/PowerShell/releases/download/v7.4.11/PowerShell-7.4.11-win-x64.msi
+  rename: PowerShell-7.4.11-win-x64.msi
+  file_checksum: 20c4eafe62d989226b9fe57d2ea045a6
+  file_size: 110043136
+  arguments: /quiet ENABLE_PSREMOTING=0 REGISTER_MANIFEST=1 DISABLE_TELEMETRY=1 USE_MU=0 ENABLE_MU=0 LAUNCHAPPONEXIT=0
+  for:
+    - win64

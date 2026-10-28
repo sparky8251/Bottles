@@ -1,0 +1,22 @@
+Name: webdin32
+Description: Webdings Font
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: cab_extract
+  file_name: webdin32.exe
+  url: https://mirrors.kernel.org/gentoo/distfiles/95/webdin32.exe
+  file_checksum: 230a1d13a365b22815f502eb24d9149b
+  file_size: 185072
+  dest: temp/webdin32
+  
+- action: install_cab_fonts
+  url: temp/webdin32
+  fonts:
+  - Webdings.TTF
+
+- action: register_font
+  name: Webdings
+  file: Webdings.TTF

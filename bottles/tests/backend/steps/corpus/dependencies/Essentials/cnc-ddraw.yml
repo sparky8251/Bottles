@@ -1,0 +1,30 @@
+Name: cnc-ddraw
+Description: Re-implementation of the DirectDraw API for classic games
+Provider: FunkyFr3sh
+License: MIT
+License_url: https://github.com/FunkyFr3sh/cnc-ddraw/blob/master/LICENSE
+Dependencies: []
+Steps:
+- action: archive_extract
+  url: https://github.com/FunkyFr3sh/cnc-ddraw/releases/download/v7.0.0.0/cnc-ddraw.zip
+  file_name: cnc-ddraw.zip
+  file_checksum: ca7381b1202eb4a0b75c5608e67d2e65
+
+- action: copy_file
+  url: temp/cnc-ddraw/
+  file_name: '*.*'
+  dest: win32
+
+- action: copy_file
+  url: temp/cnc-ddraw/Shaders/
+  file_name: '*.*'
+  dest: win32/Shaders
+
+- action: copy_file
+  url: temp/cnc-ddraw/Shaders/interpolation/
+  file_name: 'catmull-rom-bilinear.glsl'
+  dest: win32/Shaders/interpolation
+
+- action: override_dll
+  dll: ddraw
+  type: native,builtin

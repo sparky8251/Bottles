@@ -1,0 +1,38 @@
+Name: epicgamestore
+Description: The official Epic Games launcher.
+Grade: Platinum
+Arch: win64
+
+Dependencies:
+- d3dx9
+- msls31
+- riched20
+- allfonts
+- d3dcompiler_43
+- d3dcompiler_47
+- vcredist2015
+- mono
+
+Parameters:
+  dxvk: true
+  sync: fsync
+  discrete_gpu: true
+  
+Executable:
+  name: Epic Games Store
+  icon: epicgamestore.svg
+  file: EpicGamesLauncher.exe
+  path: Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win32/EpicGamesLauncher.exe
+  arguments: -opengl -SkipBuildPatchPrereq
+  
+Steps:
+- action: install_msi
+  file_name: EpicGamesLauncherInstaller.msi
+  url: https://proxy.usebottles.com/redistributable/programs/EpicGamesLauncherInstaller.msi
+  file_checksum: False
+  arguments: /q
+
+Checks:
+  files:
+    - Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win32/EpicGamesLauncher.exe
+  

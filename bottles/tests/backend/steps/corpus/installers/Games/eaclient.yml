@@ -1,0 +1,29 @@
+Name: eaclient
+Description: The official EA launcher.
+Grade: Platinum
+Arch: win64
+
+Dependencies:
+- mono
+- gecko
+- d3dx9
+- allfonts
+- d3dcompiler_43
+- d3dcompiler_47
+
+Parameters:
+  dxvk: true
+  sync: fsync
+  discrete_gpu: true
+  
+Executable:
+  name: EA Client
+  icon: eaclient.png
+  file: EADesktop.exe
+  path: "Program Files/Electronic Arts/EA Desktop/EA Desktop/EADesktop.exe"
+  
+Steps:
+- action: install_exe
+  file_name: EAappInstaller.exe
+  url: https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe
+  file_checksum: False

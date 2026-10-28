@@ -1,0 +1,15 @@
+Name: xna31
+Description: Microsoft XNA Redistributable 3.1
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies:
+- dotnet20sp1
+Steps:
+- action: install_msi
+  file_name: xnafx31_redist.msi
+  url: https://proxy.usebottles.com/redistributable/dependencies/xnafx31_redist.msi
+  rename: xnafx31_redist.msi.msi
+  file_checksum: 52873853e4981d5b9147c93472bb4ee7
+  file_size: 0
+  arguments: /quiet

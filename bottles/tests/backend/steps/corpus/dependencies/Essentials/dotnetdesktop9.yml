@@ -1,0 +1,21 @@
+Name: dotnetdesktop9
+Description: Microsoft .NET Desktop Runtime 9.0
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Steps:
+  - action: install_exe
+    file_name: windowsdesktop-runtime-9.0.14-win-x86.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/9.0.14/windowsdesktop-runtime-9.0.14-win-x86.exe
+    file_checksum: 9d867dc29223b71cf808ce7ae7be7139
+    file_size: 55495144
+    arguments: /quiet
+
+  - action: install_exe
+    file_name: windowsdesktop-runtime-9.0.14-win-x64.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/9.0.14/windowsdesktop-runtime-9.0.14-win-x64.exe
+    file_checksum: 3d94e5ec4d1db3c873d9564b84828e5c
+    file_size: 60591680
+    arguments: /quiet
+    for:
+      - win64

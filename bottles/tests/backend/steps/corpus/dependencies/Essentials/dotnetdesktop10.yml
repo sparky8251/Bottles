@@ -1,0 +1,21 @@
+Name: dotnetdesktop10
+Description: Microsoft .NET Desktop Runtime 10.0 LTS
+Provider: Microsoft Corporation
+License: MIT
+License_url: https://github.com/dotnet/windowsdesktop/blob/main/LICENSE
+Steps:
+  - action: install_exe
+    file_name: windowsdesktop-runtime-10.0.7-win-x86.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.7/windowsdesktop-runtime-10.0.7-win-x86.exe
+    file_checksum: cb7b78f2fcef731906e1f7b3b03d0ddd
+    file_size: 55685016
+    arguments: /quiet
+
+  - action: install_exe
+    file_name: windowsdesktop-runtime-10.0.7-win-x64.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.7/windowsdesktop-runtime-10.0.7-win-x64.exe
+    file_checksum: e31f4e90541c3471165fb376cf636011
+    file_size: 60029960
+    arguments: /quiet
+    for:
+      - win64

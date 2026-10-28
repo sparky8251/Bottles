@@ -1,0 +1,21 @@
+Name: dotnetdesktop8
+Description: Microsoft .NET Desktop Runtime 8.0 LTS
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Steps:
+  - action: install_exe
+    file_name: windowsdesktop-runtime-8.0.25-win-x86.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.25/windowsdesktop-runtime-8.0.25-win-x86.exe
+    file_checksum: 9fe649ca4ce6e3b4c2ff8bd305ba25ed
+    file_size: 53804640
+    arguments: /quiet
+
+  - action: install_exe
+    file_name: windowsdesktop-runtime-8.0.25-win-x64.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/8.0.25/windowsdesktop-runtime-8.0.25-win-x64.exe
+    file_checksum: 2f2b3b6edd03f1f38913cf017cc48563
+    file_size: 58461256
+    arguments: /quiet
+    for:
+      - win64

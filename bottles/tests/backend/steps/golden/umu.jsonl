@@ -1,0 +1,127 @@
+{"arch": null, "kind": "dependency", "name": "aairruntime", "ops": [], "parse": "ok", "path": "Essentials/aairruntime.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "amstream", "ops": [], "parse": "error: Bottles dependency amstream uses unsupported UMU action cab_extract", "path": "Essentials/amstream.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "art2k7min", "ops": [], "parse": "ok", "path": "Essentials/art2k7min.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "art2kmin", "ops": [], "parse": "ok", "path": "Essentials/art2kmin.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "atmlib", "ops": [], "parse": "error: Bottles dependency atmlib uses unsupported UMU action download_archive", "path": "Essentials/atmlib.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "cnc-ddraw", "ops": [], "parse": "error: Bottles dependency cnc-ddraw uses unsupported UMU action archive_extract", "path": "Essentials/cnc-ddraw.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dcompiler_42", "ops": [], "parse": "error: Bottles dependency d3dcompiler_42 uses unsupported UMU action download_archive", "path": "Essentials/d3dcompiler_42.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dcompiler_43", "ops": [], "parse": "error: Bottles dependency d3dcompiler_43 uses unsupported UMU action archive_extract", "path": "Essentials/d3dcompiler_43.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dcompiler_46", "ops": [], "parse": "error: Bottles dependency d3dcompiler_46 uses unsupported UMU action download_archive", "path": "Essentials/d3dcompiler_46.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dcompiler_47", "ops": [], "parse": "error: Bottles dependency d3dcompiler_47 uses unsupported UMU action archive_extract", "path": "Essentials/d3dcompiler_47.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dx11", "ops": [], "parse": "error: Bottles dependency d3dx11 uses unsupported UMU action archive_extract", "path": "Essentials/d3dx11.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "d3dx9", "ops": [], "parse": "error: Bottles dependency d3dx9 uses unsupported UMU action archive_extract", "path": "Essentials/d3dx9.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "devenum", "ops": [], "parse": "error: Bottles dependency devenum uses unsupported UMU action download_archive", "path": "Essentials/devenum.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dirac", "ops": [], "parse": "ok", "path": "Essentials/dirac.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "directmusic", "ops": [], "parse": "error: Bottles dependency dmband uses unsupported UMU action archive_extract", "path": "Essentials/directmusic.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "directplay", "ops": [], "parse": "error: Bottles dependency directplay uses unsupported UMU action archive_extract", "path": "Essentials/directplay.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "directshow", "ops": [], "parse": "error: Bottles dependency amstream uses unsupported UMU action cab_extract", "path": "Essentials/directshow.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmband", "ops": [], "parse": "error: Bottles dependency dmband uses unsupported UMU action archive_extract", "path": "Essentials/dmband.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmcompos", "ops": [], "parse": "error: Bottles dependency dmcompos uses unsupported UMU action archive_extract", "path": "Essentials/dmcompos.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmime", "ops": [], "parse": "error: Bottles dependency dmime uses unsupported UMU action archive_extract", "path": "Essentials/dmime.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmloader", "ops": [], "parse": "error: Bottles dependency dmloader uses unsupported UMU action archive_extract", "path": "Essentials/dmloader.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmscript", "ops": [], "parse": "error: Bottles dependency dmscript uses unsupported UMU action archive_extract", "path": "Essentials/dmscript.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmstyle", "ops": [], "parse": "error: Bottles dependency dmstyle uses unsupported UMU action archive_extract", "path": "Essentials/dmstyle.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmsynth", "ops": [], "parse": "error: Bottles dependency dmsynth uses unsupported UMU action archive_extract", "path": "Essentials/dmsynth.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmusic", "ops": [], "parse": "error: Bottles dependency dmusic uses unsupported UMU action archive_extract", "path": "Essentials/dmusic.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dmusic32", "ops": [], "parse": "error: Bottles dependency dmusic32 uses unsupported UMU action archive_extract", "path": "Essentials/dmusic32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet20", "ops": [], "parse": "error: Bottles dependency dotnet20 uses unsupported UMU action uninstall", "path": "Essentials/dotnet20.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet20sp1", "ops": [], "parse": "error: Bottles dependency dotnet20 uses unsupported UMU action uninstall", "path": "Essentials/dotnet20sp1.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet35", "ops": [], "parse": "error: Bottles dependency dotnet35 uses unsupported UMU action uninstall", "path": "Essentials/dotnet35.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet35sp1", "ops": [], "parse": "error: Bottles dependency dotnet35sp1 uses unsupported UMU action uninstall", "path": "Essentials/dotnet35sp1.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet40", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet40.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet45", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet45.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet452", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet452.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet46", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet46.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet461", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet461.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet462", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet462.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet472", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet472.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet48", "ops": [], "parse": "error: Bottles dependency dotnet40 uses unsupported UMU action uninstall", "path": "Essentials/dotnet48.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnet481", "ops": [], "parse": "error: Bottles dependency dotnet481 uses unsupported UMU action uninstall", "path": "Essentials/dotnet481.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetcore3", "ops": [], "parse": "ok", "path": "Essentials/dotnetcore3.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetcoredesktop3", "ops": [], "parse": "ok", "path": "Essentials/dotnetcoredesktop3.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetdesktop10", "ops": [], "parse": "ok", "path": "Essentials/dotnetdesktop10.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetdesktop6", "ops": [], "parse": "ok", "path": "Essentials/dotnetdesktop6.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetdesktop7", "ops": [], "parse": "ok", "path": "Essentials/dotnetdesktop7.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetdesktop8", "ops": [], "parse": "ok", "path": "Essentials/dotnetdesktop8.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dotnetdesktop9", "ops": [], "parse": "ok", "path": "Essentials/dotnetdesktop9.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dsdmo", "ops": [], "parse": "error: Bottles dependency dsdmo uses unsupported UMU action archive_extract", "path": "Essentials/dsdmo.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dsound", "ops": [], "parse": "error: Bottles dependency dsound uses unsupported UMU action archive_extract", "path": "Essentials/dsound.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dswave", "ops": [], "parse": "error: Bottles dependency dswave uses unsupported UMU action archive_extract", "path": "Essentials/dswave.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "dx8vb", "ops": [], "parse": "error: Bottles dependency dx8vb uses unsupported UMU action cab_extract", "path": "Essentials/dx8vb.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "ffdshow", "ops": [], "parse": "ok", "path": "Essentials/ffdshow.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "gdiplus", "ops": [], "parse": "error: Bottles dependency gdiplus uses unsupported UMU action download_archive", "path": "Essentials/gdiplus.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "gecko", "ops": [], "parse": "error: Bottles dependency gecko uses unsupported UMU action install_msi", "path": "Essentials/gecko.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "gfw", "ops": [], "parse": "ok", "path": "Essentials/gfw.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "gmdls", "ops": [], "parse": "error: Bottles dependency gmdls uses unsupported UMU action cab_extract", "path": "Essentials/gmdls.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "ie8_kb2936068", "ops": [], "parse": "ok", "path": "Essentials/ie8_kb2936068.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "iertutil", "ops": [], "parse": "error: Bottles dependency iertutil uses unsupported UMU action cab_extract", "path": "Essentials/iertutil.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "jet40", "ops": [], "parse": "ok", "path": "Essentials/jet40.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "l3codecx", "ops": [], "parse": "error: Bottles dependency l3codecx uses unsupported UMU action archive_extract", "path": "Essentials/l3codecx.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "lavfilters702", "ops": [], "parse": "ok", "path": "Essentials/lavfilters702.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "lavfilters741", "ops": [], "parse": "ok", "path": "Essentials/lavfilters741.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mdac28", "ops": [], "parse": "error: Bottles dependency mdac28 uses unsupported UMU action set_windows", "path": "Essentials/mdac28.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mediafoundation", "ops": [], "parse": "error: Bottles dependency mediafoundation uses unsupported UMU action download_archive", "path": "Essentials/mediafoundation.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mfc40", "ops": [], "parse": "error: Bottles dependency mfc40 uses unsupported UMU action download_archive", "path": "Essentials/mfc40.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mfc42", "ops": [], "parse": "error: Bottles dependency mfc42 uses unsupported UMU action download_archive", "path": "Essentials/mfc42.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mono", "ops": [], "parse": "error: Bottles dependency mono uses unsupported UMU action uninstall", "path": "Essentials/mono.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msasn1", "ops": [], "parse": "error: Bottles dependency msasn1 uses unsupported UMU action cab_extract", "path": "Essentials/msasn1.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msftedit", "ops": [], "parse": "error: Bottles dependency msftedit uses unsupported UMU action download_archive", "path": "Essentials/msftedit.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msls31", "ops": [], "parse": "error: Bottles dependency msls31 uses unsupported UMU action download_archive", "path": "Essentials/msls31.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "mspatcha", "ops": [], "parse": "error: Bottles dependency mspatcha uses unsupported UMU action download_archive", "path": "Essentials/mspatcha.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msxml3", "ops": [], "parse": "error: Bottles dependency msxml3 uses unsupported UMU action delete_dlls", "path": "Essentials/msxml3.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msxml4", "ops": [], "parse": "error: Bottles dependency msxml4 uses unsupported UMU action delete_dlls", "path": "Essentials/msxml4.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "msxml6", "ops": [], "parse": "error: Bottles dependency msxml6 uses unsupported UMU action download_archive", "path": "Essentials/msxml6.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "nvidia-libs", "ops": [], "parse": "error: Bottles dependency nvidia-libs uses unsupported UMU action archive_extract", "path": "Essentials/nvidia-libs.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "office-runtime", "ops": [], "parse": "error: Bottles dependency office-runtime uses unsupported UMU action set_windows", "path": "Essentials/office-runtime.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "physx", "ops": [], "parse": "ok", "path": "Essentials/physx.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "powershell", "ops": [], "parse": "error: Bottles dependency powershell_core uses unsupported UMU action install_msi", "path": "Essentials/powershell.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "powershell_core", "ops": [], "parse": "error: Bottles dependency powershell_core uses unsupported UMU action install_msi", "path": "Essentials/powershell_core.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "qasf", "ops": [], "parse": "error: Bottles dependency qasf uses unsupported UMU action cab_extract", "path": "Essentials/qasf.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "qcap", "ops": [], "parse": "error: Bottles dependency qcap uses unsupported UMU action cab_extract", "path": "Essentials/qcap.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "qdvd", "ops": [], "parse": "error: Bottles dependency qdvd uses unsupported UMU action cab_extract", "path": "Essentials/qdvd.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "qedit", "ops": [], "parse": "error: Bottles dependency qedit uses unsupported UMU action cab_extract", "path": "Essentials/qedit.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "quartz", "ops": [], "parse": "error: Bottles dependency quartz uses unsupported UMU action cab_extract", "path": "Essentials/quartz.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "quicktime72", "ops": [], "parse": "ok", "path": "Essentials/quicktime72.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "riched20", "ops": [], "parse": "error: Bottles dependency riched20 uses unsupported UMU action download_archive", "path": "Essentials/riched20.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "sqlite3", "ops": [], "parse": "error: Bottles dependency sqlite3 uses unsupported UMU action archive_extract", "path": "Essentials/sqlite3.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "urlmon", "ops": [], "parse": "error: Bottles dependency urlmon uses unsupported UMU action cab_extract", "path": "Essentials/urlmon.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vbrun6", "ops": [], "parse": "error: Bottles dependency vbrun6 uses unsupported UMU action download_archive", "path": "Essentials/vbrun6.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2005", "ops": [], "parse": "ok", "path": "Essentials/vcredist2005.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2008", "ops": [], "parse": "ok", "path": "Essentials/vcredist2008.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2010", "ops": [], "parse": "ok", "path": "Essentials/vcredist2010.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2012", "ops": [], "parse": "ok", "path": "Essentials/vcredist2012.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2013", "ops": [], "parse": "ok", "path": "Essentials/vcredist2013.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2015", "ops": [], "parse": "ok", "path": "Essentials/vcredist2015.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2019", "ops": [], "parse": "ok", "path": "Essentials/vcredist2019.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist2022", "ops": [], "parse": "ok", "path": "Essentials/vcredist2022.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist6", "ops": [], "parse": "error: Bottles dependency vcredist6 uses unsupported UMU action download_archive", "path": "Essentials/vcredist6.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "vcredist6sp6", "ops": [], "parse": "error: Bottles dependency vcredist6sp6 uses unsupported UMU action download_archive", "path": "Essentials/vcredist6sp6.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "webview2", "ops": [], "parse": "ok", "path": "Essentials/webview2.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "winhttp", "ops": [], "parse": "error: Bottles dependency winhttp uses unsupported UMU action download_archive", "path": "Essentials/winhttp.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "wininet", "ops": [], "parse": "error: Bottles dependency wininet uses unsupported UMU action cab_extract", "path": "Essentials/wininet.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "wsh57", "ops": [], "parse": "error: Bottles dependency wsh57 uses unsupported UMU action download_archive", "path": "Essentials/wsh57.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "xact", "ops": [], "parse": "error: Bottles dependency xact uses unsupported UMU action download_archive", "path": "Essentials/xact.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "xact_x64", "ops": [], "parse": "error: Bottles dependency xact_x64 uses unsupported UMU action download_archive", "path": "Essentials/xact_x64.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "xinput", "ops": [], "parse": "error: Bottles dependency xinput uses unsupported UMU action download_archive", "path": "Essentials/xinput.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "xna31", "ops": [], "parse": "error: Bottles dependency dotnet20 uses unsupported UMU action uninstall", "path": "Essentials/xna31.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "xna40", "ops": [], "parse": "error: Bottles dependency xna40 uses unsupported UMU action install_msi", "path": "Essentials/xna40.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "allfonts", "ops": [], "parse": "error: Bottles dependency andale32 uses unsupported UMU action cab_extract", "path": "Fonts/allfonts.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "andale32", "ops": [], "parse": "error: Bottles dependency andale32 uses unsupported UMU action cab_extract", "path": "Fonts/andale32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "arial32", "ops": [], "parse": "error: Bottles dependency arial32 uses unsupported UMU action cab_extract", "path": "Fonts/arial32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "arialb32", "ops": [], "parse": "error: Bottles dependency arialb32 uses unsupported UMU action cab_extract", "path": "Fonts/arialb32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "cjkfonts", "ops": [], "parse": "error: Bottles dependency cjkfonts uses unsupported UMU action archive_extract", "path": "Fonts/cjkfonts.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "comic32", "ops": [], "parse": "error: Bottles dependency comic32 uses unsupported UMU action cab_extract", "path": "Fonts/comic32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "consolas", "ops": [], "parse": "error: Bottles dependency consolas uses unsupported UMU action archive_extract", "path": "Fonts/consolas.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "corefonts", "ops": [], "parse": "ok", "path": "Fonts/corefonts.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "courie32", "ops": [], "parse": "error: Bottles dependency courie32 uses unsupported UMU action cab_extract", "path": "Fonts/courie32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "georgi32", "ops": [], "parse": "error: Bottles dependency georgi32 uses unsupported UMU action cab_extract", "path": "Fonts/georgi32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "impact32", "ops": [], "parse": "error: Bottles dependency impact32 uses unsupported UMU action cab_extract", "path": "Fonts/impact32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "lucon", "ops": [], "parse": "error: Bottles dependency lucon uses unsupported UMU action cab_extract", "path": "Fonts/lucon.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "segoemdl2", "ops": [], "parse": "error: Bottles dependency segoemdl2 uses unsupported UMU action archive_extract", "path": "Fonts/segoemdl2.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "selawik", "ops": [], "parse": "error: Bottles dependency selawik uses unsupported UMU action archive_extract", "path": "Fonts/selawik.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "tahoma32", "ops": [], "parse": "error: Bottles dependency tahoma32 uses unsupported UMU action download_archive", "path": "Fonts/tahoma32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "times32", "ops": [], "parse": "error: Bottles dependency times32 uses unsupported UMU action cab_extract", "path": "Fonts/times32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "trebuc32", "ops": [], "parse": "error: Bottles dependency trebuc32 uses unsupported UMU action cab_extract", "path": "Fonts/trebuc32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "unifont", "ops": [], "parse": "error: Bottles dependency unifont uses unsupported UMU action download_archive", "path": "Fonts/unifont.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "verdan32", "ops": [], "parse": "error: Bottles dependency verdan32 uses unsupported UMU action cab_extract", "path": "Fonts/verdan32.yml", "uninstaller": null}
+{"arch": null, "kind": "dependency", "name": "webdin32", "ops": [], "parse": "error: Bottles dependency webdin32 uses unsupported UMU action cab_extract", "path": "Fonts/webdin32.yml", "uninstaller": null}

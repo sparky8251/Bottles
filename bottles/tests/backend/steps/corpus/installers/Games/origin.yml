@@ -1,0 +1,32 @@
+Name: origin
+Description: The official Origin launcher.
+Grade: Gold
+Arch: win64
+
+Dependencies:
+- d3dx9
+- d3dx11
+- riched20
+- allfonts
+- d3dcompiler_43
+- d3dcompiler_47
+- vcredist2019
+
+Parameters:
+  dxvk: true
+  sync: fsync
+  discrete_gpu: true
+  
+Executable:
+  name: Origin
+  icon: origin.svg
+  file: Origin.exe
+  path: Program Files (x86)/Origin/Origin.exe
+  arguments: "STAGING_SHARED_MEMORY=0 %command%"
+  
+Steps:
+- action: install_exe
+  file_name: OriginSetup.exe
+  url: https://proxy.usebottles.com/redistributable/programs/OriginSetup.exe
+  file_checksum: b20305c830869009da174266180356d1
+  arguments: /silent

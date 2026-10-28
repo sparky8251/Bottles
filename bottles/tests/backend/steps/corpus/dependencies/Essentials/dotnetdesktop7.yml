@@ -1,0 +1,21 @@
+Name: dotnetdesktop7
+Description: Microsoft .NET Desktop Runtime 7.0
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Steps:
+  - action: install_exe
+    file_name: windowsdesktop-runtime-7.0.20-win-x86.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/7.0.20/windowsdesktop-runtime-7.0.20-win-x86.exe
+    file_checksum: f809ab65588f1806a6f66db8f88ede66
+    file_size: 53193856
+    arguments: /quiet
+    
+  - action: install_exe
+    file_name: windowsdesktop-runtime-7.0.20-win-x64.exe
+    url: https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/7.0.20/windowsdesktop-runtime-7.0.20-win-x64.exe
+    file_checksum: b474f5f22ebde90237c77cf54c529a14
+    file_size: 58011208
+    arguments: /quiet
+    for:
+      - win64

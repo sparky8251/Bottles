@@ -1,0 +1,14 @@
+Name: webview2
+Description: Microsoft Edge Web View 2
+Provider: WebView2
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: install_exe
+  file_name: MicrosoftEdgeWebView2RuntimeInstallerX64.exe
+  url: https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/79f5276c-391e-481d-9e0f-50d730ae66a9/MicrosoftEdgeWebView2RuntimeInstallerX64.exe
+  rename: MicrosoftEdgeWebView2RuntimeInstallerX64.exe
+  arguments: /silent /install
+  file_checksum: 39d6235aa199e156491d348c3ea02089
+  file_size: 202252256

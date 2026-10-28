@@ -1,0 +1,35 @@
+Name: steam
+Description: The official Steam launcher.
+Grade: Bronze
+Arch: win64
+
+Dependencies:
+- d3dx9
+- msls31
+- riched20
+- allfonts
+- d3dcompiler_43
+- d3dcompiler_47
+
+Parameters:
+  dxvk: true
+  sync: fsync
+  discrete_gpu: true
+  
+Executable:
+  name: Steam
+  icon: steam.svg
+  file: Steam.exe
+  path: Program Files (x86)/Steam/Steam.exe
+  arguments: -tcp +open steam://open/minigameslist
+  
+Steps:
+- action: install_exe
+  file_name: SteamSetup.exe
+  url: https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe
+  file_checksum: False
+  arguments: /S
+
+Checks:
+  files:
+    - 'Program Files (x86)/Steam/Steam.exe'

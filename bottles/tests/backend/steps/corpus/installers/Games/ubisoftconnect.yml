@@ -1,0 +1,40 @@
+Name: ubisoftconnect
+Description: The official Ubisoft Connect launcher.
+Grade: Gold
+Arch: win64
+
+Dependencies:
+- d3dx9
+- riched20
+- allfonts
+- d3dcompiler_43
+- vcredist2022
+
+Parameters:
+  dxvk: true
+  sync: fsync
+  discrete_gpu: true
+  
+Executable:
+  name: Ubisoft Connect
+  icon: ubisoftconnect.png
+  file: UbisoftConnect.exe
+  path: Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe
+  
+Steps:
+- action: install_exe
+  file_name: UbisoftConnectInstaller.exe
+  url: https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe
+  file_checksum: False
+  arguments: /S
+  
+- action: update_config
+  path: userdir/Local Settings/Application Data/Ubisoft Game Launcher/settings.yml
+  type: yaml
+  upd_keys: 
+    overlay:
+      enabled: false
+      forceunhookgame: false
+      warning_enabled: false
+    user:
+      closebehavior: CloseBehavior_Close

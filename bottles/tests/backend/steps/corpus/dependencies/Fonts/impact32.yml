@@ -1,0 +1,22 @@
+Name: impact32
+Description: Impact Font
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: cab_extract
+  file_name: impact32.exe
+  url: https://mirrors.kernel.org/gentoo/distfiles/10/impact32.exe
+  file_checksum: 7907c7dd6684e9bade91cff82683d9d7
+  file_size: 173288
+  dest: temp/impact32
+  
+- action: install_cab_fonts
+  url: temp/impact32
+  fonts:
+  - Impact.TTF
+
+- action: register_font
+  name: Impact
+  file: Impact.TTF

@@ -1,0 +1,82 @@
+Name: office-runtime
+Description: Microsoft Office Click-to-Run compatibility libraries
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/servicesagreement
+Dependencies: []
+Steps:
+- action: set_windows
+  version: win7
+
+- action: download_archive
+  file_name: windows6.1-kb976932-x64_74865ef2562006e51d7f9333b4a8d45b7a749dab.exe
+  url: http://download.windowsupdate.com/msdownload/update/software/svpk/2011/02/windows6.1-kb976932-x64_74865ef2562006e51d7f9333b4a8d45b7a749dab.exe
+  rename: windows6.1-kb976932-x64.exe
+  file_checksum: 28d3932f714bf71d78e75d36aa2e0fb8
+  file_size: 947070088
+
+- action: get_from_cab
+  source: windows6.1-kb976932-x64.exe
+  file_name: x86_microsoft-windows-security-spp-client_31bf3856ad364e35_6.1.7601.17514_none_98a45ba609e1caf5/sppc.dll
+  dest: win32
+
+- action: get_from_cab
+  source: windows6.1-kb976932-x64.exe
+  file_name: amd64_microsoft-windows-security-spp-client_31bf3856ad364e35_6.1.7601.17514_none_f4c2f729c23f3c2b/sppc.dll
+  dest: win64
+  for:
+  - win64
+
+- action: get_from_cab
+  source: windows6.1-kb976932-x64.exe
+  file_name: x86_microsoft-windows-font-embedding_31bf3856ad364e35_6.1.7601.17514_none_b7c78d327d35e10e/t2embed.dll
+  dest: win32
+
+- action: get_from_cab
+  source: windows6.1-kb976932-x64.exe
+  file_name: amd64_microsoft-windows-font-embedding_31bf3856ad364e35_6.1.7601.17514_none_13e628b635935244/t2embed.dll
+  dest: win64
+  for:
+  - win64
+
+- action: download_archive
+  file_name: Q811493_W2K_SP4_X86_EN.exe
+  url: https://web.archive.org/web/20150526022037/http://download.microsoft.com/download/8/d/c/8dc79965-dfbc-4b25-9546-e23bc4b791c6/Q811493_W2K_SP4_X86_EN.exe
+  file_checksum: e6fc7d6603cbacbcad1ec62d9b6f4018
+  file_size: 5459984
+
+- action: get_from_cab
+  source: Q811493_W2K_SP4_X86_EN.exe
+  file_name: cmd.exe
+  dest: win32
+
+- action: download_archive
+  file_name: officedeploymenttool_14729-20228.exe
+  url: https://web.archive.org/web/20220224215107if_/https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_14729-20228.exe
+  file_checksum: c13197f14fa0d938d6369841ad324dba
+  file_size: 4564480
+
+- action: get_from_cab
+  source: officedeploymenttool_14729-20228.exe
+  file_name: setup.exe
+  dest: windows/temp/office-deployment-tool
+
+- action: override_dll
+  bundle:
+  - value: "*cmd.exe"
+    data: native,builtin
+  - value: "*gdiplus"
+    data: native
+  - value: "*msxml6"
+    data: native,builtin
+  - value: "*riched20"
+    data: native,builtin
+  - value: sppc
+    data: builtin
+  - value: t2embed
+    data: native,builtin
+  - value: winscard
+    data: builtin
+
+- action: set_windows
+  version: win10

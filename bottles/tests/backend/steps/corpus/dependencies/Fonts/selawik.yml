@@ -1,0 +1,98 @@
+Name: selawik
+Description: Selawik, an open replacement for Segoe UI
+Provider: Microsoft
+License: SIL Open Font License 1.1
+License_url: https://github.com/microsoft/Selawik/blob/master/LICENSE.txt
+Dependencies: []
+Steps:
+- action: archive_extract
+  file_name: Selawik_Release.zip
+  url: https://github.com/microsoft/Selawik/releases/download/1.01/Selawik_Release.zip
+  file_checksum: dc596dc54a46b7779991d7a6c19cc705
+  file_size: 530652
+
+- action: install_fonts
+  url: temp/Selawik_Release
+  fonts:
+  - selawk.ttf
+  - selawkb.ttf
+  - selawkl.ttf
+  - selawksb.ttf
+  - selawksl.ttf
+
+- action: register_font
+  name: Selawik
+  file: selawk.ttf
+
+- action: register_font
+  name: Selawik Bold
+  file: selawkb.ttf
+
+- action: register_font
+  name: Selawik Light
+  file: selawkl.ttf
+
+- action: register_font
+  name: Selawik Semibold
+  file: selawksb.ttf
+
+- action: register_font
+  name: Selawik Semilight
+  file: selawksl.ttf
+
+- action: replace_font
+  font: Selawik
+  replace:
+  - Segoe UI
+  - Segoe UI Bold
+  - Segoe UI Light
+  - Segoe UI Semibold
+  - Segoe UI Semilight
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI
+  data: Selawik
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Bold
+  data: Selawik
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Light
+  data: Selawik Light
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Semibold
+  data: Selawik Semibold
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI
+  data: Selawik
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Bold
+  data: Selawik
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Light
+  data: Selawik Light
+  type: REG_SZ
+
+- action: set_register_key
+  key: HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Windows NT\CurrentVersion\FontSubstitutes
+  value: Segoe UI Semibold
+  data: Selawik Semibold
+  type: REG_SZ

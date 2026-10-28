@@ -1,0 +1,37 @@
+Name: trebuc32
+Description: Trebuchet MS Font
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: cab_extract
+  file_name: trebuc32.exe
+  url: https://sourceforge.net/projects/corefonts/files/the%20fonts/final/trebuc32.exe
+  file_checksum: 0d7ea16cac6261f8513a061fbfcdb2b5
+  file_size: 357200
+  dest: temp/trebuc32
+  
+- action: install_cab_fonts
+  url: temp/trebuc32
+  fonts:
+  - trebuc.ttf
+  - Trebucbd.ttf
+  - trebucbi.ttf
+  - trebucit.ttf
+
+- action: register_font
+  name: Trebuchet MS
+  file: trebuc.ttf
+
+- action: register_font
+  name: Trebuchet MS Bold
+  file: Trebucbd.ttf
+
+- action: register_font
+  name: Trebuchet MS Bold Italic
+  file: trebucbi.ttf
+
+- action: register_font
+  name: Trebuchet MS Italic
+  file: trebucit.ttf

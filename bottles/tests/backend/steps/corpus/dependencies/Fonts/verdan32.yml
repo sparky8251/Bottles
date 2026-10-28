@@ -1,0 +1,37 @@
+Name: verdan32
+Description: Verdana Font
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: cab_extract
+  file_name: verdan32.exe
+  url: https://sourceforge.net/projects/corefonts/files/the%20fonts/final/verdan32.exe
+  file_checksum: 12d2a75f8156e10607be1eaa8e8ef120
+  file_size: 351992
+  dest: temp/verdan32
+  
+- action: install_cab_fonts
+  url: temp/verdan32
+  fonts:
+  - Verdanab.TTF
+  - Verdanai.TTF
+  - Verdanaz.TTF
+  - Verdana.TTF
+
+- action: register_font
+  name: Verdana
+  file: Verdana.TTF
+
+- action: register_font
+  name: Verdana Italic
+  file: Verdanai.TTF
+
+- action: register_font
+  name: Verdana Bold Italic
+  file: Verdanaz.TTF
+
+- action: register_font
+  name: Verdana Bold
+  file: Verdanab.TTF

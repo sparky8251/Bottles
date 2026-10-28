@@ -1,0 +1,19 @@
+Name: allfonts
+Description: All Microsoft and Adobe essential fonts
+Provider: Various
+License: Mostly Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies:
+  - andale32
+  - arial32
+  - arialb32
+  - comic32
+  - courie32
+  - georgi32
+  - impact32
+  - tahoma32
+  - times32
+  - trebuc32
+  - verdan32
+  - webdin32
+Steps: []

@@ -1,0 +1,27 @@
+Name: riched20
+Description: Microsoft RichEdit Control 2.0 (riched20.dll)
+Provider: Microsoft
+License: Microsoft EULA
+License_url: https://www.microsoft.com/web/webpi/eula/net_library_eula_enu.htm
+Dependencies: []
+Steps:
+- action: download_archive
+  file_name: W2KSP4_EN.EXE
+  url: https://proxy.usebottles.com/redistributable/dependencies/W2KSP4_EN.EXE
+  rename: w2ksp4_en.exe
+  file_checksum: a4ef6c91d418418b287cefe31f958175
+  file_size: 135477136
+
+- action: get_from_cab
+  source: w2ksp4_en.exe
+  file_name: riched20.dl_
+  dest: temp/riched20/
+
+- action: get_from_cab
+  source: riched20/i386/riched20.dl_
+  file_name: riched20.dll
+  dest: win32
+  
+- action: override_dll
+  dll: riched20
+  type: native,builtin
