@@ -97,8 +97,6 @@ runtime_programs = [
 	'kill',
 	'pgrep',
 	'pidof',
-	'lspci',
-	'file',
 	'7z|7za|7zr',
 	'cabextract',
 	'update-desktop-database',

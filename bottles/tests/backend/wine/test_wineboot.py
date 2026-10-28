@@ -75,10 +75,6 @@ def test_forced_dll_overrides_take_precedence(monkeypatch, tmp_path):
         "bottles.backend.wine.winecommand.SteamUtils.is_proton", lambda *_: False
     )
     monkeypatch.setattr(
-        "bottles.backend.wine.winecommand.DisplayUtils.check_nvidia_device",
-        lambda: None,
-    )
-    monkeypatch.setattr(
         "bottles.backend.wine.winecommand.GPUUtils.get_gpu",
         lambda _self: {"prime": {"discrete": None, "integrated": None}, "vendors": {}},
     )

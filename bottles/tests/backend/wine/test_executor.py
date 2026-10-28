@@ -1423,10 +1423,6 @@ def test_winecommand_filters_host_environment(monkeypatch, tmp_path):
         "bottles.backend.wine.winecommand.SteamUtils.is_proton", lambda *_: False
     )
     monkeypatch.setattr(
-        "bottles.backend.wine.winecommand.DisplayUtils.check_nvidia_device",
-        lambda: None,
-    )
-    monkeypatch.setattr(
         "bottles.backend.wine.winecommand.DisplayUtils.display_server_type",
         lambda: "x11",
     )
@@ -1519,10 +1515,6 @@ def test_winecommand_prepares_proton_environment(monkeypatch, tmp_path, wayland)
     monkeypatch.setattr(
         "bottles.backend.wine.winecommand.SteamUtils.prepare_proton_fsr4",
         _prepare_fsr4,
-    )
-    monkeypatch.setattr(
-        "bottles.backend.wine.winecommand.DisplayUtils.check_nvidia_device",
-        lambda: None,
     )
     monkeypatch.setattr(
         "bottles.backend.wine.winecommand.DisplayUtils.display_server_type",

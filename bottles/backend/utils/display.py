@@ -1,5 +1,4 @@
 import os
-import subprocess
 from functools import lru_cache
 
 
@@ -27,26 +26,6 @@ class DisplayUtils:
             if os.path.exists(os.path.join(X11_SOCKET_DIR, f"X{i}")):
                 return f":{i}"
 
-        return False
-
-    @staticmethod
-    def check_nvidia_device():
-        """Check if there is an nvidia device connected"""
-        _query = "NVIDIA Corporation".lower()
-        _proc = (
-            subprocess.Popen(
-                "lspci | grep 'VGA'",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=True,
-            )
-            .communicate()[0]
-            .decode("utf-8")
-            .lower()
-        )
-
-        if _query in _proc:
-            return True
         return False
 
     @staticmethod

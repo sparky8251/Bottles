@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import codecs
-import contextlib
 import functools
 import os
 import platform
@@ -23,7 +22,6 @@ import random
 import re
 import shlex
 import string
-import subprocess
 from typing import Optional
 
 import chardet
@@ -173,15 +171,6 @@ def sort_by_version(_list: list, extra_check: str = "async"):
 
     _list.sort(key=natural_keys, reverse=True)
     return _list
-
-
-def get_mime(path: str):
-    """Get the mime type of file."""
-    with contextlib.suppress(FileNotFoundError):
-        res = subprocess.check_output(["file", "--mime-type", path])
-        if res:
-            return res.decode("utf-8").split(":")[1].strip()
-    return None
 
 
 def random_string(length: int):

@@ -576,7 +576,6 @@ class WineCommand:
 
         dll_overrides = []
         gpu = GPUUtils().get_gpu()
-        DisplayUtils.check_nvidia_device()
         ld = []
 
         # Bottle environment variables

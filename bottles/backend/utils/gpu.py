@@ -16,7 +16,6 @@
 #
 
 import os
-import subprocess
 from enum import Enum
 from functools import lru_cache
 
@@ -28,6 +27,14 @@ logging = Logger()
 
 # Overridden by tests; the real file is kernel-provided and read-only.
 PROC_MODULES = "/proc/modules"
+SYSFS_PCI_DEVICES = "/sys/bus/pci/devices"
+
+# The raw PCI ids behind what `lspci | grep` used to match: the class names
+# "VGA compatible controller", "3D controller" and "Display controller", and
+# the pci.ids vendor names for NVIDIA, AMD/ATI (0x1002, not AMD's chipset id
+# 0x1022) and Intel. Reading sysfs needs neither lspci nor a pci.ids database.
+DISPLAY_CLASSES = ("0x0300", "0x0302", "0x0380")
+VENDOR_IDS = {"nvidia": "0x10de", "amd": "0x1002", "intel": "0x8086"}
 
 
 class GPUVendors(Enum):
@@ -47,20 +54,28 @@ class GPUUtils:
     def __init__(self):
         self.vk = VulkanUtils()
 
-    def list_all(self):
-        found = []
-        for _vendor in self.__vendors:
-            _proc = subprocess.Popen(
-                f"lspci | grep '{self.__vendors[_vendor]}'",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=True,
-            )
-            stdout, stderr = _proc.communicate()
-
-            if len(stdout) > 0:
-                found.append(_vendor)
-
+    @staticmethod
+    def _display_vendors() -> set:
+        """Vendors with at least one PCI display controller, read from sysfs."""
+        found = set()
+        try:
+            devices = os.listdir(SYSFS_PCI_DEVICES)
+        except OSError:
+            return found
+        for device in devices:
+            base = os.path.join(SYSFS_PCI_DEVICES, device)
+            try:
+                with open(os.path.join(base, "class"), encoding="ascii") as f:
+                    pci_class = f.read().strip()
+                with open(os.path.join(base, "vendor"), encoding="ascii") as f:
+                    vendor_id = f.read().strip()
+            except OSError:
+                continue
+            if pci_class[:6] not in DISPLAY_CLASSES:
+                continue
+            for vendor, wanted in VENDOR_IDS.items():
+                if vendor_id == wanted:
+                    found.add(vendor)
         return found
 
     @staticmethod
@@ -88,11 +103,8 @@ class GPUUtils:
         return loaded
 
     def get_gpu(self):
-        checks = {
-            "nvidia": {"query": "(VGA|3D|Display).*NVIDIA"},
-            "amd": {"query": "(VGA|3D|Display).*AMD/ATI"},
-            "intel": {"query": "(VGA|3D|Display).*Intel"},
-        }
+        # checked in this order on purpose: callers take the first vendor
+        checks = ("nvidia", "amd", "intel")
         gpus = {
             "nvidia": {
                 "vendor": "nvidia",
@@ -123,16 +135,9 @@ class GPUUtils:
             gpus["nvidia"]["envs"] = {"DRI_PRIME": "1"}
             gpus["nvidia"]["icd"] = nouveau_icd
 
+        present = self._display_vendors()
         for _check in checks:
-            _query = checks[_check]["query"]
-            _proc = subprocess.Popen(
-                f"lspci | grep -iP '{_query}'",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=True,
-            )
-            stdout, stderr = _proc.communicate()
-            if len(stdout) > 0:
+            if _check in present:
                 found.append(_check)
                 result["vendors"][_check] = gpus[_check]
 
@@ -149,11 +154,4 @@ class GPUUtils:
     @staticmethod
     @lru_cache
     def is_gpu(vendor: GPUVendors) -> bool:
-        _proc = subprocess.Popen(
-            f"lspci | grep -iP '{vendor.value}'",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,
-        )
-        stdout, stderr = _proc.communicate()
-        return len(stdout) > 0
+        return vendor.value in GPUUtils._display_vendors()
