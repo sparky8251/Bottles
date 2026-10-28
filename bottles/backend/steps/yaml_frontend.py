@@ -6,7 +6,7 @@
 # optimization: every step becomes one opcode in manifest order with its
 # fields as written, arch filtering included, and the machine decides later.
 import os
-from typing import Optional
+from typing import Optional, TypeGuard
 
 import yaml
 
@@ -45,7 +45,7 @@ def parse_file(path: str, kind: ProgramKind) -> Program:
     return parse(manifest, kind, name)
 
 
-def _is_str_list(value: object) -> bool:
+def _is_str_list(value: object) -> TypeGuard[list[str]]:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 

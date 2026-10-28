@@ -15,7 +15,7 @@ import threading
 import traceback
 from gettext import gettext as _
 from glob import glob
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import Callable, Optional
 
 import patoolib  # type: ignore [import-untyped]
 
@@ -61,9 +61,6 @@ from bottles.backend.wine.uninstaller import Uninstaller
 from bottles.backend.wine.winecommand import WineCommand
 from bottles.backend.wine.winedbg import WineDbg
 from bottles.backend.wine.winepath import WinePath
-
-if TYPE_CHECKING:
-    from bottles.backend.steps.machine import Executor
 
 logging = Logger()
 
@@ -948,6 +945,3 @@ class BottleStepExecutor:
         logging.warning(f"Skipping unsupported installer step {op.spelling}")
         return Result(True)
 
-
-if TYPE_CHECKING:
-    _conforms: "Executor" = BottleStepExecutor(None, BottleConfig())

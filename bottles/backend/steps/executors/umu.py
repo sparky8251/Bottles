@@ -10,7 +10,7 @@ import shlex
 from dataclasses import replace
 from gettext import gettext as _
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import Callable, Optional
 
 from bottles.backend.globals import Paths
 from bottles.backend.models.result import Result
@@ -39,10 +39,6 @@ from bottles.backend.steps.grammar import (
     UpdateConfig,
     UseWindows,
 )
-
-if TYPE_CHECKING:
-    from bottles.backend.steps.machine import Executor
-
 
 class UmuDependencyError(RuntimeError):
     pass
@@ -223,6 +219,3 @@ class UmuStepExecutor:
     def legacy_check_file_exist(self, op: LegacyCheckFileExist) -> Result:
         return self._unreachable(op)
 
-
-if TYPE_CHECKING:
-    _conforms: "Executor" = UmuStepExecutor(None, None, None, {})

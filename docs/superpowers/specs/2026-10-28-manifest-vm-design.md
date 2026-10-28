@@ -185,10 +185,13 @@ and also accepts a catalog name, resolved through the Manager;
 `bottles-cli` imports GTK at module level, so it carries that
 requirement. Both ship in every build.
 
-`mypy.ini` disables `arg-type` and `attr-defined` globally. The
-`bottles.backend.steps` package re-enables them so a missing executor
-method is an error inside the package, and a test asserts at runtime that
-both executors define a method for every opcode.
+`mypy.ini` disables `arg-type` and `attr-defined` globally. The grammar,
+frontend and machine modules re-enable them, and `steps/conformance.py`, a
+type-check-only module under the same settings, assigns each executor to
+the `Executor` Protocol so a missing or mis-typed opcode method is a mypy
+error. The executors themselves hold handler bodies moved as they were and
+keep the global settings. A test asserts at runtime that both executors
+define a method for every opcode.
 
 ## Layout
 
