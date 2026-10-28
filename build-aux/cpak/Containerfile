@@ -18,8 +18,7 @@ COPY . .
 
 RUN sed -E '/^(pycairo|PyGObject)==/d' requirements.txt > /tmp/bottles-requirements.txt && \
     python3 -m pip install --ignore-installed --no-cache-dir --break-system-packages -r /tmp/bottles-requirements.txt && \
-    printf '[Application]\nname=com.usebottles.bottles\n' > /.flatpak-info && \
-    meson setup --prefix=/usr /tmp/bottles-build && \
+    meson setup --prefix=/usr -Druntime_checks=disabled /tmp/bottles-build && \
     DESTDIR=/staging ninja -C /tmp/bottles-build install
 
 RUN git clone --depth 1 --branch v0.1.5 https://github.com/fvs-lab/fvs2.git /tmp/fvs2 && \
@@ -37,7 +36,7 @@ RUN arch="$(dpkg --print-architecture)" && \
     apt update && apt install -y --no-install-recommends \
     bzip2 ca-certificates curl gzip libc-bin libcurl4 libdrm2 libegl1 libfreetype6 libgl1 libglib2.0-0 libglib2.0-bin libgles2 libgnutls30t64 libgstreamer1.0-0 libunwind8 libusb-1.0-0 \
     libgstreamer-plugins-base1.0-0 libnotify4 libpcsclite1 libsdl2-2.0-0 libsecret-1-0 libvulkan1 libxkbregistry0 \
-    cabextract dconf-cli dconf-gsettings-backend desktop-file-utils imagemagick p7zip-full pciutils tar unzip vmtouch vulkan-tools x11-utils xdg-utils xterm xz-utils zstd \
+    cabextract dconf-cli dconf-gsettings-backend desktop-file-utils file imagemagick p7zip-full pciutils tar unzip vmtouch vulkan-tools x11-utils xdg-utils xterm xz-utils zstd \
     python3 python3-gi python3-gi-cairo python3-cairo python3-dbus python3-requests python3-vkbasalt \
     libwebkit2gtk-4.1-0 gir1.2-adw-1 gir1.2-gdkpixbuf-2.0 gir1.2-gtk-4.0 \
     gir1.2-gst-plugins-base-1.0 gir1.2-gtksource-5 gir1.2-notify-0.7 gir1.2-secret-1 \
@@ -54,6 +53,12 @@ COPY --from=builder /usr/local/ /usr/local/
 COPY --from=builder /app/ /app/
 COPY --from=umu /usr/local/bin/umu-run /usr/local/bin/umu-run
 COPY --from=umu /usr/local/share/licenses/umu-launcher/LICENSE /usr/local/share/licenses/umu-launcher/LICENSE
+
+# Verify the runtime stage against the declaration it was built from. The
+# checker is bind-mounted from the builder's build dir so it never lands in a
+# layer of the shipped image.
+RUN --mount=type=bind,from=builder,source=/tmp/bottles-build/bottles-check-deps,target=/tmp/bottles-check-deps \
+    python3 /tmp/bottles-check-deps --strict
 
 RUN mv /usr/bin/bottles /usr/bin/bottles-real
 

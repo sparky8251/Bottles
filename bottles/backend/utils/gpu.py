@@ -26,6 +26,9 @@ from bottles.backend.utils.vulkan import VulkanUtils
 
 logging = Logger()
 
+# Overridden by tests; the real file is kernel-provided and read-only.
+PROC_MODULES = "/proc/modules"
+
 
 class GPUVendors(Enum):
     AMD = "amd"
@@ -72,19 +75,17 @@ class GPUUtils:
 
     @staticmethod
     def is_nouveau():
-        if os.path.isdir("/sys/module/nouveau"):
-            return True
-        _proc = subprocess.Popen(
-            "lsmod | grep nouveau",
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,
-        )
-        stdout, stderr = _proc.communicate()
-        if len(stdout) > 0:
+        # /proc/modules is the one loaded-module list visible from inside the
+        # flatpak sandbox: /sys/module is not mounted there and lsmod is not
+        # shipped by the runtime, so both earlier approaches never fired.
+        try:
+            with open(PROC_MODULES, encoding="utf-8") as modules:
+                loaded = any(line.split(" ", 1)[0] == "nouveau" for line in modules)
+        except OSError:
+            return False
+        if loaded:
             logging.warning("Nouveau driver detected, this may cause issues")
-            return True
-        return False
+        return loaded
 
     def get_gpu(self):
         checks = {

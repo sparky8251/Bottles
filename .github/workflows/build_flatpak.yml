@@ -49,6 +49,7 @@ jobs:
           test -r /app/lib/i386-linux-gnu/libc.so.6
           test -d /app/lib/i386-linux-gnu/dri/intel-vaapi-driver
           test -d /app/i386/nvidia-vaapi-driver
+          bottles-check-deps --strict
           test -r /app/share/bottles/bottles/backend/managers/eagletracing.py
           test -r /app/share/bottles/bottles/backend/identity.py
           python3 -c "from gi.repository import Gio; resource = Gio.Resource.load(\"/app/share/bottles/bottles.gresource\"); ui = resource.lookup_data(\"/com/usebottles/bottles/details-preferences.ui\", Gio.ResourceLookupFlags.NONE).get_data(); assert b\"switch_eagle_tracing\" in ui"

@@ -1,0 +1,103 @@
+#!@PYTHON@
+# Verifies the runtime dependencies declared in meson.build. Meson substitutes
+# the lists below at configure time, so this file is the declaration in
+# executable form and never edited by hand. It runs at configure time (per the
+# runtime_checks option) and ships in bindir so the final artifact can be
+# checked against the same declaration it was built from.
+#
+# Exit status: 0 all present; 1 a Python module or typelib is missing;
+# 2 a required program is missing (only with --strict).
+
+import argparse
+import importlib
+import os
+import shutil
+import sys
+
+PYTHON_MODULES = "@RUNTIME_PYTHON_MODULES@".split()
+TYPELIBS = "@RUNTIME_TYPELIBS@".split()
+PROGRAMS = "@RUNTIME_PROGRAMS@".split()
+OPTIONAL_PROGRAMS = "@RUNTIME_OPTIONAL_PROGRAMS@".split()
+
+
+def check_module(name):
+    try:
+        importlib.import_module(name)
+        return True, ""
+    except Exception as e:  # ImportError or anything the module raises on import
+        return False, f"{type(e).__name__}: {e}"
+
+
+def check_typelib(spec):
+    namespace, version = spec.split("=", 1)
+    try:
+        import gi
+
+        gi.require_version(namespace, version)
+        importlib.import_module(f"gi.repository.{namespace}")
+        return True, ""
+    except Exception as e:
+        return False, f"{type(e).__name__}: {e}"
+
+
+def check_program(spec):
+    # One alternative must resolve; an absolute path is tested directly because
+    # flatpak extensions live outside PATH.
+    for alt in spec.split("|"):
+        if os.path.isabs(alt):
+            if os.access(alt, os.X_OK):
+                return True, alt
+        else:
+            found = shutil.which(alt)
+            if found:
+                return True, found
+    return False, ""
+
+
+def main():
+    parser = argparse.ArgumentParser(description="check Bottles runtime dependencies")
+    parser.add_argument("--strict", action="store_true", help="missing required programs are fatal")
+    parser.add_argument("--quiet", action="store_true", help="print only problems")
+    args = parser.parse_args()
+
+    missing_fatal = 0
+    missing_programs = 0
+    rows = []
+
+    for name in PYTHON_MODULES:
+        ok, detail = check_module(name)
+        missing_fatal += not ok
+        rows.append(("module", name, ok, detail))
+    for spec in TYPELIBS:
+        ok, detail = check_typelib(spec)
+        missing_fatal += not ok
+        rows.append(("typelib", spec.replace("=", " "), ok, detail))
+    for spec in PROGRAMS:
+        ok, detail = check_program(spec)
+        missing_programs += not ok
+        rows.append(("program", spec, ok, detail))
+    for spec in OPTIONAL_PROGRAMS:
+        ok, detail = check_program(spec)
+        rows.append(("optional", spec, ok, detail))
+
+    width = max(len(r[1]) for r in rows)
+    for kind, name, ok, detail in rows:
+        if args.quiet and ok:
+            continue
+        state = "found" if ok else ("absent" if kind == "optional" else "MISSING")
+        print(f"{kind:<9}{name:<{width + 2}}{state:<9}{detail}")
+
+    # stdout is block-buffered when piped, so flush it or the stderr summary
+    # lands above the table it summarises
+    sys.stdout.flush()
+    if missing_fatal:
+        print(f"\n{missing_fatal} required Python module(s)/typelib(s) missing", file=sys.stderr)
+        return 1
+    if missing_programs:
+        print(f"\n{missing_programs} required program(s) missing", file=sys.stderr)
+        return 2 if args.strict else 0
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

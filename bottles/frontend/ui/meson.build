@@ -81,7 +81,7 @@ blueprints = custom_target('blueprints',
     'eagle.blp',
   ),
   output: '.',
-  command: [find_program('blueprint-compiler'), 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],)
+  command: [blueprint_compiler, 'batch-compile', '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],)
 
 gnome.compile_resources('bottles',
   'bottles.gresource.xml',

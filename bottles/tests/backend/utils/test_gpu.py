@@ -27,19 +27,27 @@ def test_vulkan_detects_nouveau_icds(monkeypatch, tmp_path):
     }
 
 
-def test_nouveau_detection_uses_sysfs_inside_flatpak(monkeypatch):
-    monkeypatch.setattr(
-        gpu_module.os.path,
-        "isdir",
-        lambda path: path == "/sys/module/nouveau",
-    )
+def test_nouveau_detection_reads_proc_modules(monkeypatch, tmp_path):
+    modules = tmp_path / "modules"
+    modules.write_text("amdgpu 1 0 - Live 0x0\nnouveau 2 0 - Live 0x0\n")
+    monkeypatch.setattr(gpu_module, "PROC_MODULES", str(modules))
 
     def fail(*_args, **_kwargs):
-        raise AssertionError("lsmod should not be needed")
+        raise AssertionError("no subprocess should be needed")
 
     monkeypatch.setattr(gpu_module.subprocess, "Popen", fail)
 
     assert GPUUtils.is_nouveau() is True
+
+
+def test_nouveau_detection_ignores_prefix_matches_and_missing_file(monkeypatch, tmp_path):
+    modules = tmp_path / "modules"
+    modules.write_text("nouveau_extra 1 0 - Live 0x0\n")
+    monkeypatch.setattr(gpu_module, "PROC_MODULES", str(modules))
+    assert GPUUtils.is_nouveau() is False
+
+    monkeypatch.setattr(gpu_module, "PROC_MODULES", str(tmp_path / "absent"))
+    assert GPUUtils.is_nouveau() is False
 
 
 def test_nouveau_gpu_uses_nvk_icd(monkeypatch):

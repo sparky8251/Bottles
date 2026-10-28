@@ -7,3 +7,15 @@ option (
     ],
     value: 'default'
 )
+
+# Runtime dependencies (Python modules, GI typelibs, executed programs) are
+# declared in meson.build and verified by the generated bottles-check-deps.
+# 'enabled' fails configure if the build environment lacks any of them, which
+# is right when the build environment is also the runtime (flatpak). 'disabled'
+# skips the check for build stages that are deliberately not the runtime (the
+# cpak builder stage). 'auto' only warns.
+option (
+    'runtime_checks',
+    type: 'feature',
+    value: 'auto'
+)
