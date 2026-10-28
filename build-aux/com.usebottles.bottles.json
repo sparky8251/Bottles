@@ -162,28 +162,6 @@
             ]
         },
         {
-            "name": "ImageMagick",
-            "buildsystem": "autotools",
-            "config-opts": [
-                "--disable-static",
-                "--disable-docs",
-                "--with-hdri",
-                "--with-pic"
-            ],
-            "sources": [
-                {
-                    "type": "git",
-                    "url": "https://github.com/ImageMagick/ImageMagick",
-                    "tag": "7.1.2-34",
-                    "commit": "a0c4bf729a26a5c2feb28b0365b47a8db736078a",
-                    "x-checker-data": {
-                        "type": "git",
-                        "tag-pattern": "^([\\d.]+-[\\d]+)$"
-                    }
-                }
-            ]
-        },
-        {
             "name": "libportal",
             "buildsystem": "meson",
             "config-opts": [

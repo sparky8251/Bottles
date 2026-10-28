@@ -102,7 +102,6 @@ runtime_programs = [
 	'7z|7za|7zr',
 	'cabextract',
 	'update-desktop-database',
-	'magick',
 	'fvs2',
 	'vmtouch',
 	'umu-run',

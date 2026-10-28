@@ -18,7 +18,7 @@ bottles_sources = [
   'decorators.py',
   'snake.py',
   'vdf.py',
-  'imagemagick.py',
+  'icon.py',
   'proc.py',
   'yaml.py',
   'nvidia.py',

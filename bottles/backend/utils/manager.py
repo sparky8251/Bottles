@@ -31,7 +31,7 @@ from bottles.backend.logger import Logger
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.models.result import Result
 from bottles.backend.state import SignalManager, Signals
-from bottles.backend.utils.imagemagick import ImageMagickUtils
+from bottles.backend.utils.icon import convert_to_png
 
 gi.require_version("Xdp", "1.0")
 # ruff: noqa: E402
@@ -324,8 +324,7 @@ class ManagerUtils:
                 os.remove(ico_dest)
 
             ico.export_icon(ico_dest_temp)
-            im = ImageMagickUtils(ico_dest_temp)
-            im.convert(ico_dest)
+            convert_to_png(ico_dest_temp, ico_dest)
             os.remove(ico_dest_temp)
             if ManagerUtils.is_png_image(ico_dest):
                 icon = ico_dest
