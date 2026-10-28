@@ -75,6 +75,18 @@ def detect_encoding(text: bytes, locale_hint: str = None) -> Optional[str]:
                         return locale_encodings[loc]
             case _:
                 pass
+    # TODO: detection is the wrong tool here and non-ASCII output is mangled
+    # today. Wine's programs do not share one encoding: winepath writes UTF-8,
+    # console tools (reg, cmd) write the locale's OEM code page (866 for ru,
+    # 850 for de/fr/..., 932/936/949/950 for ja/zh_CN/ko/zh_TW), and winedbg
+    # writes the ANSI page (1251 for ru, 1252 for de/fr/...). Bottles chooses
+    # that locale itself via LC_ALL, so the page is knowable per producer; a
+    # decoder should try UTF-8 strictly and then that page. chardet returns
+    # None below 0.5 confidence for nearly every real legacy-page sample, so
+    # callers fall back to repr() of the bytes, and winedbg's process list
+    # cannot match a program whose name is not ASCII. Measured 2026-10-28;
+    # the expected-failure cases in tests/backend/utils/test_generic.py hold
+    # the captured bytes. Fixing this also removes the chardet dependency.
     result = chardet.detect(text)
     encoding = result["encoding"]
     confidence = result["confidence"]
