@@ -443,8 +443,11 @@ class InstallerHeader:
     dependencies: tuple[str, ...] = ()
     parameters: Optional[dict] = None
     executables: tuple[dict, ...] = ()
+    # True when the manifest used the plural `Executables` key: those programs
+    # may be missing after install, a single `Executable` may not
+    optional_executables: bool = False
     checks: Optional[dict] = None
-    installers: tuple[str, ...] = ()
+    installers: tuple = ()
 
 
 @dataclass(frozen=True)

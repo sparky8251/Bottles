@@ -81,6 +81,7 @@ def _parse_dependency(manifest: dict, name: str) -> Program:
 def _parse_installer(manifest: dict, name: str) -> Program:
     invalid = ManifestError("Installer is not well configured.")
     executables = manifest.get("Executables")
+    optional_executables = executables is not None
     if executables is None:
         executables = [manifest.get("Executable")]
     if (
@@ -105,6 +106,7 @@ def _parse_installer(manifest: dict, name: str) -> Program:
         dependencies=tuple(dependencies) if _is_str_list(dependencies) else (),
         parameters=manifest.get("Parameters") or None,
         executables=tuple(executables),
+        optional_executables=optional_executables,
         checks=manifest.get("Checks") or None,
         installers=tuple(installers) if isinstance(installers, list) else (),
     )
