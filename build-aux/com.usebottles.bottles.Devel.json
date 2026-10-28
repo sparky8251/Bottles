@@ -136,50 +136,6 @@
     "mkdir -p /app/share/vulkan/implicit_layer.d/"
   ],
   "modules": [
-    {
-      "name": "yara",
-      "buildsystem": "autotools",
-      "config-opts": [
-        "--disable-static",
-        "--enable-cuckoo",
-        "--enable-magic",
-        "--enable-dotnet"
-      ],
-      "sources": [
-        {
-          "type": "git",
-          "url": "https://github.com/VirusTotal/yara",
-          "tag": "v4.5.8",
-          "x-checker-data": {
-            "type": "git",
-            "tag-pattern": "^v([\\d.]+)$"
-          },
-          "commit": "84b0e3cc0e42f8f8e6b84d19c97ec3ac6ff8aee8"
-        }
-      ],
-      "modules": [
-        {
-          "name": "jansson",
-          "buildsystem": "cmake-ninja",
-          "config-opts": [
-            "-DJANSSON_BUILD_DOCS=OFF",
-            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
-          ],
-          "sources": [
-            {
-              "type": "git",
-              "url": "https://github.com/akheron/jansson",
-              "tag": "v2.15.1",
-              "x-checker-data": {
-                "type": "git",
-                "tag-pattern": "^v([\\d.]+)$"
-              },
-              "commit": "dbb5fb3636e155fccfce4cd215de752779bd6971"
-            }
-          ]
-        }
-      ]
-    },
     "fvs2.yaml",
     "pypi-deps.yaml",
     "umu-launcher.yaml",

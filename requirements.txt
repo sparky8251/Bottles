@@ -1,5 +1,4 @@
 # Updated using pur -r requirements.txt
-wheel==0.48.0
 PyYAML==6.0.3
 pycurl==7.48.0
 chardet==7.7.0
@@ -9,8 +8,6 @@ Markdown==3.11.2
 icoextract==0.3.1
 patool==4.1.0
 pathvalidate==3.3.1
-FVS==0.3.4
-orjson==3.13.0
 pycairo==1.29.2
 PyGObject==3.58.1
 charset-normalizer==3.5.2
