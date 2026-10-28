@@ -7,8 +7,11 @@
 # failure never stopped the old loop, the machine ignores it, as the old
 # dispatcher did.
 import os
+import re
 import shutil
+import subprocess
 import tempfile
+import threading
 import traceback
 from gettext import gettext as _
 from glob import glob
@@ -19,6 +22,7 @@ import patoolib  # type: ignore [import-untyped]
 from bottles.backend.cabextract import CabExtract
 from bottles.backend.globals import Paths
 from bottles.backend.logger import Logger
+from bottles.backend.managers.conf import ConfigManager
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.models.enum import Arch
 from bottles.backend.models.result import Result
@@ -54,6 +58,7 @@ from bottles.backend.wine.reg import Reg, RegItem
 from bottles.backend.wine.regkeys import RegKeys
 from bottles.backend.wine.regsvr32 import Regsvr32
 from bottles.backend.wine.uninstaller import Uninstaller
+from bottles.backend.wine.winecommand import WineCommand
 from bottles.backend.wine.winedbg import WineDbg
 from bottles.backend.wine.winepath import WinePath
 
@@ -118,6 +123,114 @@ def get_real_dest(config: BottleConfig, dest: str) -> str | bool:
         return False
 
     return dest
+
+
+def progress_paths(config: BottleConfig, path: str) -> list[str]:
+    if not isinstance(path, str) or not path:
+        return []
+
+    drive_c = os.path.realpath(
+        os.path.join(ManagerUtils.get_bottle_path(config), "drive_c")
+    )
+    pattern = os.path.abspath(os.path.join(drive_c, path))
+
+    try:
+        if os.path.commonpath([drive_c, pattern]) != drive_c:
+            return []
+    except ValueError:
+        return []
+
+    paths = []
+    for candidate in glob(pattern):
+        candidate = os.path.realpath(candidate)
+        try:
+            if os.path.commonpath([drive_c, candidate]) != drive_c:
+                continue
+        except ValueError:
+            continue
+        if os.path.isfile(candidate):
+            paths.append(candidate)
+    return paths
+
+
+def progress_positions(config: BottleConfig, progress: dict) -> dict[str, int]:
+    positions = {}
+    encoding = progress.get("encoding", "utf-8")
+
+    for path in progress_paths(config, progress.get("path", "")):
+        try:
+            with open(path, "r", encoding=encoding, errors="replace") as log:
+                log.seek(0, os.SEEK_END)
+                positions[path] = log.tell()
+        except (LookupError, OSError):
+            continue
+    return positions
+
+
+def watch_progress(
+    config: BottleConfig,
+    progress: dict,
+    positions: dict[str, int],
+    stop: threading.Event,
+    progress_fn: Callable[[Optional[float]], None],
+    log_fn: Optional[Callable[[str], None]] = None,
+):
+    try:
+        pattern = re.compile(progress.get("pattern", ""))
+    except (re.error, TypeError):
+        logging.error("Invalid installer progress pattern.")
+        return
+
+    maximum = progress.get("maximum", 100)
+    encoding = progress.get("encoding", "utf-8")
+    last_fraction = None
+    final_pass = False
+
+    while True:
+        for path in progress_paths(config, progress.get("path", "")):
+            try:
+                if os.path.getsize(path) < positions.get(path, 0):
+                    positions[path] = 0
+
+                with open(path, "r", encoding=encoding, errors="replace") as log:
+                    log.seek(positions.get(path, 0))
+                    while True:
+                        line_start = log.tell()
+                        line = log.readline()
+                        if not line:
+                            break
+                        if not line.endswith("\n"):
+                            positions[path] = line_start
+                            break
+                        positions[path] = log.tell()
+
+                        match = pattern.search(line)
+                        if not match:
+                            continue
+
+                        if log_fn:
+                            log_fn(line.strip()[:500])
+
+                        try:
+                            fraction = float(match.group(1)) / float(maximum)
+                        except (
+                            IndexError,
+                            TypeError,
+                            ValueError,
+                            ZeroDivisionError,
+                        ):
+                            continue
+
+                        fraction = max(0.0, min(1.0, fraction))
+                        if fraction != last_fraction:
+                            progress_fn(fraction)
+                            last_fraction = fraction
+            except (LookupError, OSError):
+                continue
+
+        if final_pass:
+            break
+        final_pass = stop.wait(0.25)
 
 
 class BottleStepExecutor:
@@ -589,25 +702,251 @@ class BottleStepExecutor:
         rk.set_app_default(op.version, op.executable)
         return Result(True)
 
-    # --- installer opcodes (moved in the next step) -----------------------
+    # --- installer opcodes ----------------------------------------------
 
     def installer_run_file(self, op: InstallerRunFile) -> Result:
-        raise NotImplementedError
+        # the inline install_exe/install_msi block of InstallerManager.__perform_steps
+        config = self.config
+        activity_fn = self.activity_fn
+        log_fn = self.log_fn
+        if op.url != "local":
+            download = self.manager.component_manager.download(
+                op.url,
+                op.file_name,
+                op.rename,
+                checksum=op.file_checksum,
+            )
+        else:
+            download = True
+
+        if download:
+            if op.url != "local":
+                if op.rename:
+                    file = op.rename
+                else:
+                    file = op.file_name
+                file_path = f"{Paths.temp}/{file}"
+            else:
+                file_path = self.local_resources[op.file_name]
+
+            executor = WineExecutor(
+                config,
+                exec_path=file_path,
+                args=op.arguments,
+                environment=op.environment,
+                monitoring=list(op.monitoring or ()),
+            )
+            file_name = os.path.basename(file_path)
+            if activity_fn:
+                activity_fn(file_name)
+            if log_fn:
+                log_fn(f"Started {file_name}")
+            result = executor.run()
+            if activity_fn:
+                activity_fn(None)
+            if not result.ok:
+                message = result.message or f"Failed to run {file_name}."
+                logging.error(message)
+                if log_fn:
+                    log_fn(message)
+                return Result(False, message=message)
+            if log_fn:
+                log_fn(f"Finished {file_name}")
+        else:
+            message = (
+                f"Failed to download {op.file_name}, or checksum failed."
+            )
+            logging.error(message)
+            if log_fn:
+                log_fn(message)
+            return Result(False, message=message)
+        return Result(True)
 
     def run_script(self, op: RunScript) -> Result:
-        raise NotImplementedError
+        # the dispatcher reported the activity around the script; the body is
+        # InstallerManager.__step_run_script
+        config = self.config
+        activity_fn = self.activity_fn
+        log_fn = self.log_fn
+        if activity_fn:
+            activity_fn("installer script")
+        if log_fn:
+            log_fn("Started installer script")
+
+        placeholders = {
+            "!bottle_path": ManagerUtils.get_bottle_path(config),
+            "!bottle_drive": f"{ManagerUtils.get_bottle_path(config)}/drive_c",
+            "!bottle_name": config.Name,
+            "!bottle_arch": config.Arch,
+        }
+        preventions = {"bottle.yml": "Bottle configuration cannot be modified."}
+        script = op.script
+
+        for key, value in placeholders.items():
+            script = script.replace(key, value)
+
+        for key, value in preventions.items():
+            if script.find(key) != -1:
+                logging.error(
+                    value,
+                )
+                return Result(False, message=value)
+
+        logging.info("Executing installer script…")
+        process = subprocess.Popen(
+            f"bash -c '{script}'",
+            shell=True,
+            cwd=ManagerUtils.get_bottle_path(config),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        stdout, stderr = process.communicate()
+        if log_fn:
+            for line in f"{stdout}\n{stderr}".splitlines():
+                log_fn(line[:500])
+        if process.returncode:
+            message = f"Installer script exited with status {process.returncode}."
+            logging.error(message)
+            return Result(False, message=message)
+        logging.info("Finished executing installer script.")
+
+        if log_fn:
+            log_fn("Finished installer script")
+        if activity_fn:
+            activity_fn(None)
+        return Result(True)
 
     def run_winecommand(self, op: RunWinecommand) -> Result:
-        raise NotImplementedError
+        """Run a wine command"""
+        config = self.config
+        progress_fn = self.progress_fn
+        activity_fn = self.activity_fn
+        log_fn = self.log_fn
+        commands = op.commands
+        if not commands:
+            return Result(True)
+
+        for command in commands:
+            skip_paths = command.get("skip_if_files_exist", [])
+            if skip_paths:
+                bottle = ManagerUtils.get_bottle_path(config)
+                drive_c = os.path.realpath(os.path.join(bottle, "drive_c"))
+                if all(
+                    os.path.commonpath(
+                        (drive_c, os.path.realpath(os.path.join(drive_c, path)))
+                    )
+                    == drive_c
+                    and os.path.isfile(os.path.join(drive_c, path))
+                    for path in skip_paths
+                ):
+                    continue
+
+            command_name = os.path.basename(
+                command.get("command", "").replace("\\", "/")
+            )
+            activity = command.get("label") or command_name
+            if activity_fn:
+                activity_fn(activity)
+            if log_fn:
+                log_fn(f"Started {command_name}")
+
+            capture_exit_code = command.get("capture_exit_code")
+            if capture_exit_code is None:
+                capture_exit_code = bool(
+                    command.get("wait", False)
+                    and command.get("command", "").lower().endswith(".exe")
+                )
+
+            progress = command.get("progress")
+            stop = None
+            watcher = None
+            if progress and progress_fn:
+                progress_fn(None)
+                positions = progress_positions(config, progress)
+                stop = threading.Event()
+                watcher = threading.Thread(
+                    target=watch_progress,
+                    args=(config, progress, positions, stop, progress_fn, log_fn),
+                    daemon=True,
+                )
+                watcher.start()
+
+            _winecommand = WineCommand(
+                config,
+                command=command.get("command"),
+                arguments=command.get("arguments"),
+                minimal=command.get("minimal"),
+                communicate=command.get("wait", False),
+                capture_exit_code=capture_exit_code,
+            )
+            try:
+                result = _winecommand.run()
+            finally:
+                if stop:
+                    stop.set()
+                if watcher:
+                    watcher.join()
+                if progress_fn:
+                    progress_fn(None)
+                if activity_fn:
+                    activity_fn(None)
+
+            success_codes = command.get("success_codes", [])
+            returncode = getattr(_winecommand, "returncode", None)
+            if (
+                not result.ok
+                and returncode not in success_codes
+                and not (
+                    isinstance(returncode, int)
+                    and returncode & 0xFF in success_codes
+                )
+            ):
+                message = result.message or f"Failed to run {command_name}."
+                logging.error(message)
+                if log_fn:
+                    if result.has_data:
+                        for line in str(result.data).splitlines():
+                            log_fn(line[:500])
+                    log_fn(message)
+                return Result(False, message=message)
+
+            if result.has_data and log_fn:
+                for line in str(result.data).splitlines():
+                    log_fn(line[:500])
+
+            if log_fn:
+                log_fn(f"Finished {command_name}")
+
+        return Result(True)
 
     def update_config(self, op: UpdateConfig) -> Result:
-        raise NotImplementedError
+        bottle = ManagerUtils.get_bottle_path(self.config)
+        conf_path = op.path
+        conf_type = op.type
+        del_keys = op.del_keys if op.del_keys is not None else {}
+        upd_keys = op.upd_keys if op.upd_keys is not None else {}
+
+        if conf_path.startswith("userdir/"):
+            current_user = os.getenv("USER")
+            conf_path = conf_path.replace("userdir/", f"drive_c/users/{current_user}/")
+
+        conf_path = f"{bottle}/{conf_path}"
+        _conf = ConfigManager(config_file=conf_path, config_type=conf_type)
+
+        for d in del_keys:
+            _conf.del_key(d)
+
+        _conf.merge_dict(upd_keys)
+        return Result(True)
 
     def legacy_set_windows(self, op: LegacySetWindows) -> Result:
-        raise NotImplementedError
+        logging.warning(f"Skipping unsupported installer step {op.spelling}")
+        return Result(True)
 
     def legacy_check_file_exist(self, op: LegacyCheckFileExist) -> Result:
-        raise NotImplementedError
+        logging.warning(f"Skipping unsupported installer step {op.spelling}")
+        return Result(True)
 
 
 if TYPE_CHECKING:

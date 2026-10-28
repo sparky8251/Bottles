@@ -3,6 +3,14 @@ import threading
 import pytest
 
 from bottles.backend.managers.installer import InstallerManager
+from bottles.backend.steps.executors.bottle import (
+    BottleStepExecutor,
+    progress_positions,
+    watch_progress,
+)
+from bottles.backend.steps.grammar import InstallerRunFile, ProgramKind, RunWinecommand
+from bottles.backend.steps.machine import run
+from bottles.backend.steps.yaml_frontend import parse
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.models.result import Result
 from bottles.backend.repos.installer import InstallerRepo
@@ -124,7 +132,7 @@ def test_installer_reports_missing_manifest_without_starting(mocker):
     manager = mocker.Mock()
     manager.repository_manager.get_repo.return_value.get.return_value = False
     installer = InstallerManager(manager)
-    executor = mocker.patch("bottles.backend.managers.installer.WineExecutor")
+    executor = mocker.patch("bottles.backend.steps.executors.bottle.WineExecutor")
     step = mocker.Mock()
 
     assert installer.has_local_resources(("office",)) == []
@@ -391,15 +399,15 @@ def test_installer_fails_when_all_optional_programs_are_missing(
 
 def test_run_winecommand_waits_and_reports_failure(mocker):
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.run.return_value = Result(False, message="failed")
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test")).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "reg",
                     "arguments": "query HKCU",
@@ -407,7 +415,8 @@ def test_run_winecommand_waits_and_reports_failure(mocker):
                     "wait": True,
                 }
             ]
-        },
+            )
+        )
     )
 
     assert not result.ok
@@ -423,16 +432,16 @@ def test_run_winecommand_waits_and_reports_failure(mocker):
 
 def test_run_winecommand_accepts_configured_exit_status(mocker):
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.returncode = 49
     winecommand.return_value.run.return_value = Result(False, message="failed")
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test")).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "sc",
                     "arguments": "create TestService",
@@ -440,7 +449,8 @@ def test_run_winecommand_accepts_configured_exit_status(mocker):
                     "success_codes": [0, 49],
                 }
             ]
-        },
+            )
+        )
     )
 
     assert result.ok
@@ -448,16 +458,16 @@ def test_run_winecommand_accepts_configured_exit_status(mocker):
 
 def test_run_winecommand_accepts_truncated_configured_exit_status(mocker):
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.returncode = 1073
     winecommand.return_value.run.return_value = Result(False, message="failed")
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test")).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "sc",
                     "arguments": "create TestService",
@@ -465,7 +475,8 @@ def test_run_winecommand_accepts_truncated_configured_exit_status(mocker):
                     "success_codes": [0, 49],
                 }
             ]
-        },
+            )
+        )
     )
 
     assert result.ok
@@ -487,19 +498,19 @@ def test_run_winecommand_skips_only_when_all_files_exist(
     for name in installed:
         (office / name).touch()
     monkeypatch.setattr(
-        "bottles.backend.managers.installer.ManagerUtils.get_bottle_path",
+        "bottles.backend.steps.executors.bottle.ManagerUtils.get_bottle_path",
         lambda _config: str(bottle),
     )
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.run.return_value = Result(True)
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test")).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "setup.exe",
                     "wait": True,
@@ -509,7 +520,8 @@ def test_run_winecommand_skips_only_when_all_files_exist(
                     ],
                 }
             ]
-        },
+            )
+        )
     )
 
     assert result.ok
@@ -524,26 +536,27 @@ def test_run_winecommand_does_not_skip_for_paths_outside_drive_c(
     drive_c.mkdir(parents=True)
     (bottle / "outside.exe").touch()
     monkeypatch.setattr(
-        "bottles.backend.managers.installer.ManagerUtils.get_bottle_path",
+        "bottles.backend.steps.executors.bottle.ManagerUtils.get_bottle_path",
         lambda _config: str(bottle),
     )
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.run.return_value = Result(True)
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test")).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "setup.exe",
                     "wait": True,
                     "skip_if_files_exist": ["../outside.exe"],
                 }
             ]
-        },
+            )
+        )
     )
 
     assert result.ok
@@ -553,41 +566,52 @@ def test_run_winecommand_does_not_skip_for_paths_outside_drive_c(
 def test_installer_step_reports_failed_executable(mocker):
     manager = mocker.Mock()
     manager.component_manager.download.return_value = True
-    installer = object.__new__(InstallerManager)
-    installer._InstallerManager__component_manager = manager.component_manager
     executor = mocker.patch(
-        "bottles.backend.managers.installer.WineExecutor",
+        "bottles.backend.steps.executors.bottle.WineExecutor",
         autospec=True,
     )
     executor.return_value.run.return_value = Result(False, message="failed")
-
-    result = installer._InstallerManager__perform_steps(
-        BottleConfig(Name="Test"),
-        [
-            {
-                "action": "install_exe",
-                "file_name": "setup.exe",
-                "url": "https://example.invalid/setup.exe",
-            }
-        ],
+    program = parse(
+        {
+            "Name": "x",
+            "Executable": {"file": "x.exe", "name": "X"},
+            "Steps": [
+                {
+                    "action": "install_exe",
+                    "file_name": "setup.exe",
+                    "url": "https://example.invalid/setup.exe",
+                }
+            ],
+        },
+        ProgramKind.INSTALLER,
+        "x",
     )
+
+    result = run(program, BottleStepExecutor(manager, BottleConfig(Name="Test")), "win64")
 
     assert not result.ok
 
 
+def test_local_file_missing_from_local_resources_raises_key_error_as_before():
+    # Review Focus 4: pre-existing behaviour, kept on purpose
+    executor = BottleStepExecutor(None, BottleConfig(Name="Test"), local_resources={})
+    with pytest.raises(KeyError):
+        executor.installer_run_file(InstallerRunFile(url="local", file_name="setup.exe"))
+
+
 def test_run_winecommand_reports_activity(mocker):
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
     winecommand.return_value.run.return_value = Result(True)
     activities = []
     logs = []
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test"), activity_fn=activities.append, log_fn=logs.append).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "C:/setup.exe",
                     "label": "Microsoft 365 setup",
@@ -596,9 +620,8 @@ def test_run_winecommand_reports_activity(mocker):
                     "minimal": True,
                 }
             ]
-        },
-        activity_fn=activities.append,
-        log_fn=logs.append,
+            )
+        )
     )
 
     assert result.ok
@@ -621,7 +644,7 @@ def test_installer_progress_follows_new_log_entries(mocker, tmp_path):
     log_path = log_dir / "CPAK-test.log"
     log_path.write_text("progress=10\n", encoding="utf-16-le")
     mocker.patch(
-        "bottles.backend.managers.installer.ManagerUtils.get_bottle_path",
+        "bottles.backend.steps.executors.bottle.ManagerUtils.get_bottle_path",
         return_value=str(bottle),
     )
     config = BottleConfig(Name="Test")
@@ -630,14 +653,14 @@ def test_installer_progress_follows_new_log_entries(mocker, tmp_path):
         "encoding": "utf-16-le",
         "pattern": r"progress=([0-9]+)",
     }
-    positions = InstallerManager._InstallerManager__progress_positions(
+    positions = progress_positions(
         config, progress
     )
     stop = threading.Event()
     values = []
     lines = []
     watcher = threading.Thread(
-        target=InstallerManager._InstallerManager__watch_progress,
+        target=watch_progress,
         args=(config, progress, positions, stop, values.append, lines.append),
     )
     watcher.start()
@@ -658,11 +681,11 @@ def test_run_winecommand_reports_progress_before_returning(mocker, tmp_path):
     log_dir.mkdir(parents=True)
     log_path = log_dir / "installer.log"
     mocker.patch(
-        "bottles.backend.managers.installer.ManagerUtils.get_bottle_path",
+        "bottles.backend.steps.executors.bottle.ManagerUtils.get_bottle_path",
         return_value=str(bottle),
     )
     winecommand = mocker.patch(
-        "bottles.backend.managers.installer.WineCommand",
+        "bottles.backend.steps.executors.bottle.WineCommand",
         autospec=True,
     )
 
@@ -674,10 +697,10 @@ def test_run_winecommand_reports_progress_before_returning(mocker, tmp_path):
     values = []
     lines = []
 
-    result = InstallerManager._InstallerManager__step_run_winecommand(
-        BottleConfig(Name="Test"),
-        {
-            "commands": [
+    result = BottleStepExecutor(None, BottleConfig(Name="Test"), progress_fn=values.append, log_fn=lines.append).run_winecommand(
+        RunWinecommand(
+            commands=tuple(
+                [
                 {
                     "command": "setup.exe",
                     "wait": True,
@@ -687,9 +710,8 @@ def test_run_winecommand_reports_progress_before_returning(mocker, tmp_path):
                     },
                 }
             ]
-        },
-        progress_fn=values.append,
-        log_fn=lines.append,
+            )
+        )
     )
 
     assert result.ok
@@ -727,7 +749,7 @@ def test_installer_keeps_dependency_failure_details(mocker, failure, message):
     manager.dependency_manager.install.return_value = failure
     installer = InstallerManager(manager)
     config = BottleConfig(Name="Test")
-    executor = mocker.patch("bottles.backend.managers.installer.WineExecutor")
+    executor = mocker.patch("bottles.backend.steps.executors.bottle.WineExecutor")
     logs = []
 
     result = installer.install(config, ("editor",), lambda *_args: None, log_fn=logs.append)
