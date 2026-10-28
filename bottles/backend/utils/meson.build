@@ -8,6 +8,7 @@ bottles_sources = [
   'hidraw.py',
   'manager.py',
   'vulkan.py',
+  'vulkanprobe.py',
   'terminal.py',
   'file.py',
   'generic.py',

@@ -102,8 +102,6 @@ runtime_programs = [
 	'7z|7za|7zr',
 	'cabextract',
 	'update-desktop-database',
-	'vulkaninfo',
-	'xdpyinfo',
 	'magick',
 	'fvs2',
 	'vmtouch',

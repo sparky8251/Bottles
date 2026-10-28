@@ -1,5 +1,6 @@
 import pytest
 
+from bottles.backend.utils import display as display_module
 from bottles.backend.utils.display import DisplayUtils
 
 
@@ -25,3 +26,23 @@ def test_display_server_type(monkeypatch, session_type, wayland_display, expecte
             monkeypatch.setenv(name, value)
 
     assert DisplayUtils.display_server_type() == expected
+
+
+def test_get_x_display_prefers_environment(monkeypatch):
+    DisplayUtils.get_x_display.cache_clear()
+    monkeypatch.setenv("DISPLAY", ":7")
+    assert DisplayUtils.get_x_display() == ":7"
+    DisplayUtils.get_x_display.cache_clear()
+
+
+def test_get_x_display_falls_back_to_server_sockets(monkeypatch, tmp_path):
+    DisplayUtils.get_x_display.cache_clear()
+    monkeypatch.delenv("DISPLAY", raising=False)
+    monkeypatch.setattr(display_module, "X11_SOCKET_DIR", str(tmp_path))
+
+    assert DisplayUtils.get_x_display() is False
+
+    DisplayUtils.get_x_display.cache_clear()
+    (tmp_path / "X1").touch()
+    assert DisplayUtils.get_x_display() == ":1"
+    DisplayUtils.get_x_display.cache_clear()

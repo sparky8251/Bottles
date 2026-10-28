@@ -3,6 +3,11 @@ import subprocess
 from functools import lru_cache
 
 
+# Every X server, whatever its implementation, listens on a socket named
+# X<display> in this directory. Tests point it elsewhere.
+X11_SOCKET_DIR = "/tmp/.X11-unix"
+
+
 class DisplayUtils:
     @staticmethod
     @lru_cache
@@ -14,21 +19,13 @@ class DisplayUtils:
         if os.environ.get(env_var):
             return os.environ.get(env_var)
 
+        # Without DISPLAY, probe the first few display numbers by their
+        # sockets. Asking xdpyinfo only recognised servers that print "x.org",
+        # which Xwayland and other servers do not, and needed a binary neither
+        # shipped artifact carries.
         for i in ports_range:
-            _port = f":{i}"
-            _proc = (
-                subprocess.Popen(
-                    f"xdpyinfo -display :{i}",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=True,
-                )
-                .communicate()[0]
-                .decode("utf-8")
-                .lower()
-            )
-            if "x.org" in _proc:
-                return _port
+            if os.path.exists(os.path.join(X11_SOCKET_DIR, f"X{i}")):
+                return f":{i}"
 
         return False
 

@@ -17,8 +17,8 @@
 
 import filecmp
 import os
-import shutil
 import subprocess
+import sys
 from functools import lru_cache
 from glob import glob
 
@@ -84,36 +84,22 @@ class VulkanUtils:
     def check_support() -> bool:
         """
         Return True if Vulkan is actually functional on this system.
-        Uses `vulkaninfo --summary` for a lightweight probe that works both
-        on the host and inside the Flatpak sandbox.  Checking only for ICD
-        loader files is not reliable inside Flatpak because the runtime may
-        ship generic loaders even when the GPU does not support Vulkan.
+        Runs the bundled probe in a child process so a crashing or hanging ICD
+        cannot take Bottles down with it; the probe exits 0 only when at least
+        one physical device enumerates. Checking only for ICD loader files is
+        not reliable inside Flatpak because the runtime may ship generic
+        loaders even when the GPU does not support Vulkan.
         """
-        if shutil.which("vulkaninfo") is None:
-            return False
+        probe = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vulkanprobe.py")
         try:
+            # -I keeps this directory off sys.path: its threading.py, json.py and
+            # yaml.py would otherwise shadow the standard library in the child.
             result = subprocess.run(
-                ["vulkaninfo", "--summary"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                [sys.executable, "-I", probe],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 timeout=10,
             )
-            # vulkaninfo exits 0 only when at least one GPU is usable.
             return result.returncode == 0
         except (subprocess.TimeoutExpired, OSError):
             return False
-
-    @staticmethod
-    def test_vulkan():
-        if shutil.which("vulkaninfo") is None:
-            return "vulkaninfo tool not found"
-
-        res = (
-            subprocess.Popen(
-                "vulkaninfo", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-            )
-            .communicate()[0]
-            .decode("utf-8")
-        )
-
-        return res
