@@ -6,6 +6,7 @@ import pytest
 from bottles.backend.globals import Paths
 from bottles.backend.managers import dependency
 from bottles.backend.managers.dependency import DependencyManager
+from bottles.backend.steps.executors import bottle as bottle_executor
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.models.result import Result
 from bottles.backend.state import TaskManager
@@ -37,9 +38,9 @@ def recorder(monkeypatch, tmp_path):
             return state.installer_result
 
     monkeypatch.setattr(Paths, "temp", str(tmp_path))
-    monkeypatch.setattr(dependency, "WineExecutor", FakeExecutor)
+    monkeypatch.setattr(bottle_executor, "WineExecutor", FakeExecutor)
     monkeypatch.setattr(
-        dependency,
+        bottle_executor,
         "WineDbg",
         lambda _config: SimpleNamespace(wait_for_process=lambda _file: True),
     )
@@ -201,7 +202,7 @@ def test_installer_without_z_is_staged_inside_prefix(
             assert staged[0].exists()
             return Result(success, message="" if success else "Installer failed")
 
-    monkeypatch.setattr(dependency, "WineExecutor", Executor)
+    monkeypatch.setattr(bottle_executor, "WineExecutor", Executor)
 
     _, result = _install(
         _dependency_manager(recorder),
