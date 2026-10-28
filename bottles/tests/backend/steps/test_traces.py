@@ -1,10 +1,12 @@
 # The oracle: every manifest Bottles 67.5 fetches, run through parse and the
 # machine with a recording executor, must produce the trace the old
 # interpreters produced (golden/*.jsonl, captured by legacy_capture.py).
+import functools
 import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from bottles.backend.steps.grammar import ProgramKind
 from bottles.backend.steps.yaml_frontend import ManifestError, parse_file
@@ -59,3 +61,35 @@ def test_the_two_legacy_steps_are_in_the_installer_traces():
         "Games/starcitizen.yml": ["legacy_set_windows"],
         "Games/itchio.yml": ["legacy_check_file_exist"],
     }
+
+
+UMU = load_golden("umu.jsonl")
+
+
+@functools.lru_cache(maxsize=None)
+def _umu_installer():
+    from types import SimpleNamespace
+
+    from bottles.backend.umu.dependencies import UmuDependencyInstaller
+
+    manifests = {}
+    for line in UMU:
+        with open(CORPUS / "dependencies" / line["path"], "rb") as handle:
+            manifests[line["name"]] = yaml.safe_load(handle)
+    manager = SimpleNamespace(
+        dependency_manager=SimpleNamespace(get_dependency=lambda name: manifests.get(name))
+    )
+    return UmuDependencyInstaller(manager, repository=None, executor=None)
+
+
+@pytest.mark.parametrize("line", UMU, ids=[line["path"] for line in UMU])
+def test_umu_plan_verdict_matches_the_old_validator(line):
+    from bottles.backend.umu.dependencies import UmuDependencyError
+
+    installer = _umu_installer()
+    try:
+        installer._plan((line["name"],), set())
+        verdict = "ok"
+    except UmuDependencyError as error:
+        verdict = f"error: {error}"
+    assert verdict == line["parse"]

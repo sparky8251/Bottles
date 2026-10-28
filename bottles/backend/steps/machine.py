@@ -79,10 +79,11 @@ class Callbacks:
 def run(
     program: Program,
     executor: Executor,
-    arch: str,
+    arch: Optional[str],
     callbacks: Optional[Callbacks] = None,
 ) -> Result:
-    """Run every opcode that applies to `arch`, in order.
+    """Run every opcode that applies to `arch`, in order; with arch None every
+    opcode runs, which is how umu always treated dependency steps.
 
     Returns the executor's failing Result unchanged when a halting opcode
     fails; otherwise Result(True) with data {"uninstaller": flag}, the flag
@@ -90,7 +91,7 @@ def run(
     callbacks = callbacks or Callbacks()
     uninstaller = True
     for op in program.ops:
-        if not op.applies_to(arch):
+        if arch is not None and not op.applies_to(arch):
             continue
         if callbacks.step:
             callbacks.step()

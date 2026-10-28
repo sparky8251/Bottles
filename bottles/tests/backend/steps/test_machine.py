@@ -98,3 +98,13 @@ def test_trace_matches_the_golden_line_shape():
             {"op": "cab_extract", "skipped": True, "fields": {"file_name": "b.cab", "url": "u"}},
         ],
     }
+
+
+def test_arch_none_runs_every_op():
+    program = _program(
+        InstallFile(url="u", file_name="x64.exe", arches=("win64",)),
+        RegisterDll(dlls=("a",), arches=("win32",)),
+    )
+    executor = RecordingExecutor()
+    assert run(program, executor, None).ok
+    assert [op for op, _ in executor.calls] == ["install_file", "register_dll"]

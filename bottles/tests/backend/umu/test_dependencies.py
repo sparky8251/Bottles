@@ -1,3 +1,4 @@
+import pytest
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -239,3 +240,18 @@ def test_keeps_completed_dependencies_after_later_failure(monkeypatch, tmp_path)
     assert result.status is False
     assert result.data.extra["installed_dependencies"] == ["first"]
     assert repository.load(game.id).extra["installed_dependencies"] == ["first"]
+
+
+def test_umu_plan_reports_malformed_manifest_with_the_parser_message(monkeypatch, tmp_path):
+    # Review Focus 5: the one validator rejects a non-string action before
+    # umu's own check, so the message is the parser's
+    installer, _repository, _game, _downloads, _executor = _installer(
+        tmp_path,
+        monkeypatch,
+        {"bad": {"Name": "bad", "Dependencies": [], "Steps": [{"action": 3}]}},
+    )
+    from bottles.backend.umu.dependencies import UmuDependencyError
+
+    assert installer.is_compatible("bad") is False
+    with pytest.raises(UmuDependencyError, match=r"Invalid manifest for bad\."):
+        installer._plan(("bad",), set())
