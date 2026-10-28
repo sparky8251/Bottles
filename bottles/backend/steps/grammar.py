@@ -33,6 +33,13 @@ class Op:
     halts_on_failure: ClassVar[bool] = False
 
     arches: Union[str, tuple[str, ...]] = ARCH_BOTH
+    # the action name as the manifest wrote it; synonyms share an opcode but
+    # messages quote the author's spelling
+    spelling: str = ""
+
+    def __post_init__(self):
+        if not self.spelling:
+            object.__setattr__(self, "spelling", self.spellings[0])
 
     def applies_to(self, arch: str) -> bool:
         # substring on a string, membership on a tuple: exactly the old
@@ -46,7 +53,7 @@ class Op:
         return {
             f.name: getattr(self, f.name)
             for f in sorted(dataclass_fields(self), key=lambda f: f.name)
-            if f.name != "arches" and getattr(self, f.name) is not None
+            if f.name not in ("arches", "spelling") and getattr(self, f.name) is not None
         }
 
     def dump(self) -> str:
