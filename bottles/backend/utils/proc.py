@@ -16,7 +16,6 @@
 #
 
 import os
-import subprocess
 
 
 class Proc:
@@ -63,11 +62,12 @@ class Proc:
             return ""
 
     def kill(self, signal: int = 15):
-        subprocess.Popen(
-            ["kill", f"-{signal}", str(self.pid)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        # the process may already be gone or belong to another user; the
+        # previous `kill` subprocess reported neither, so neither does this
+        try:
+            os.kill(int(self.pid), signal)
+        except (ProcessLookupError, PermissionError):
+            pass
 
 
 class ProcUtils:

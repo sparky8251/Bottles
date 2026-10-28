@@ -23,8 +23,7 @@ class WineServer(WineProgram):
             return False
 
         # Perform native check before wasting time using wine
-        res = subprocess.Popen(["pgrep", "wineserver"], stdout=subprocess.PIPE)
-        if res.stdout.read() == b"":
+        if not ProcUtils.get_by_name("wineserver"):
             return False
 
         # Check using wine

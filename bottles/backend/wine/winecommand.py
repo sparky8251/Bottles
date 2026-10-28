@@ -24,6 +24,7 @@ from bottles.backend.managers.sandbox import SandboxManager
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.models.result import Result
 from bottles.backend.utils.display import DisplayUtils
+from bottles.backend.utils.proc import ProcUtils
 from bottles.backend.utils.generic import (
     detect_encoding,
     get_host_architecture,
@@ -1233,12 +1234,8 @@ raise SystemExit(status if status >= 0 else 128 - status)
         self.command = f"{vmtouch_available} {vmtouch_flags} {vmtouch_file_size} {self.vmtouch_files} && {self.command}"
 
     def _vmtouch_free(self):
-        subprocess.Popen(
-            "kill $(pidof vmtouch)",
-            shell=True,
-            env=self.env,
-            cwd=self.cwd,
-        )
+        for proc in ProcUtils.get_by_name("vmtouch"):
+            proc.kill()
         if not self.vmtouch_files:
             return
 

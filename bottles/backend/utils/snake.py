@@ -108,7 +108,7 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    os.system("clear")
+    print("\033[2J\033[H", end="", flush=True)
     logo = """
 .▄▄ ·  ▐ ▄  ▄▄▄· ▄ •▄ ▄▄▄ .
 ▐█ ▀. •█▌▐█▐█ ▀█ █▌▄▌▪▀▄.▀·
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     choice = input()
     if choice == "1":
         curses.wrapper(main)
-        os.system("tput reset")
+        print("\033c", end="", flush=True)
 
         print("\u2554" + "\u2550" * (len(result) + 2) + "\u2557")
         print("\u2551" + " " + result + " " + "\u2551")

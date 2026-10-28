@@ -1,5 +1,3 @@
-import subprocess
-
 from bottles.backend.models.config import BottleConfig
 from bottles.backend.wine.wineserver import WineServer
 
@@ -7,12 +5,11 @@ from bottles.backend.wine.wineserver import WineServer
 def test_is_alive_skips_missing_bottle_directory(monkeypatch, mocker, tmp_path):
     bottle_path = tmp_path / "missing"
     config = BottleConfig(Name="Missing", Runner="sys-wine-11.0")
-    pgrep = mocker.Mock()
-    pgrep.stdout.read.return_value = b"123\n"
-    popen = mocker.patch(
-        "bottles.backend.wine.wineserver.subprocess.Popen",
-        return_value=pgrep,
+    running = mocker.patch(
+        "bottles.backend.wine.wineserver.ProcUtils.get_by_name",
+        return_value=[mocker.Mock()],
     )
+    popen = mocker.patch("bottles.backend.wine.wineserver.subprocess.Popen")
     monkeypatch.setattr(
         "bottles.backend.wine.wineserver.ManagerUtils.get_bottle_path",
         lambda _config: str(bottle_path),
@@ -23,18 +20,21 @@ def test_is_alive_skips_missing_bottle_directory(monkeypatch, mocker, tmp_path):
     )
 
     assert WineServer(config).is_alive() is False
-    popen.assert_called_once_with(["pgrep", "wineserver"], stdout=subprocess.PIPE)
+    running.assert_called_once_with("wineserver")
+    popen.assert_not_called()
 
 
 def test_is_alive_handles_bottle_removed_during_check(monkeypatch, mocker, tmp_path):
     bottle_path = tmp_path / "removed"
     bottle_path.mkdir()
     config = BottleConfig(Name="Removed", Runner="sys-wine-11.0")
-    pgrep = mocker.Mock()
-    pgrep.stdout.read.return_value = b"123\n"
+    mocker.patch(
+        "bottles.backend.wine.wineserver.ProcUtils.get_by_name",
+        return_value=[mocker.Mock()],
+    )
     mocker.patch(
         "bottles.backend.wine.wineserver.subprocess.Popen",
-        side_effect=[pgrep, FileNotFoundError],
+        side_effect=FileNotFoundError,
     )
     monkeypatch.setattr(
         "bottles.backend.wine.wineserver.ManagerUtils.get_bottle_path",
@@ -46,3 +46,12 @@ def test_is_alive_handles_bottle_removed_during_check(monkeypatch, mocker, tmp_p
     )
 
     assert WineServer(config).is_alive() is False
+
+
+def test_is_alive_is_false_without_a_wineserver_process(monkeypatch, mocker):
+    config = BottleConfig(Name="Idle", Runner="sys-wine-11.0")
+    mocker.patch("bottles.backend.wine.wineserver.ProcUtils.get_by_name", return_value=[])
+    popen = mocker.patch("bottles.backend.wine.wineserver.subprocess.Popen")
+
+    assert WineServer(config).is_alive() is False
+    popen.assert_not_called()

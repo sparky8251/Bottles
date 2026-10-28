@@ -324,7 +324,7 @@ class CLI:
 
     @staticmethod
     def __clear():
-        os.system("clear")
+        print("\033[2J\033[H", end="", flush=True)
 
     def __process_args(self):
         self.args = self.parser.parse_args()

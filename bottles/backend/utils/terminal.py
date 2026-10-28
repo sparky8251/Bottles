@@ -17,6 +17,7 @@
 
 import os
 import shlex
+import shutil
 import subprocess
 
 from bottles.backend.globals import Paths
@@ -75,17 +76,7 @@ class TerminalUtils:
             return True
 
         for terminal in self.terminals:
-            terminal_check = (
-                subprocess.Popen(
-                    f"command -v {terminal[0]} > /dev/null && echo 1 || echo 0",
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                )
-                .communicate()[0]
-                .decode("utf-8")
-            )
-
-            if "1" in terminal_check:
+            if shutil.which(terminal[0]):
                 self.terminal = terminal
                 return True
 

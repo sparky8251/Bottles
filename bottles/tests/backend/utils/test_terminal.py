@@ -203,3 +203,25 @@ def test_terminal_reports_process_failure(mocker, returncode):
     popen.return_value.returncode = returncode
 
     assert terminal.execute("wine cmd") is False
+
+
+def test_check_support_picks_the_first_terminal_on_path(monkeypatch):
+    monkeypatch.delenv("FLATPAK_ID", raising=False)
+    terminal = TerminalUtils()
+    monkeypatch.setattr(
+        terminal_module.shutil,
+        "which",
+        lambda name: "/usr/bin/kitty" if name == "kitty" else None,
+    )
+
+    assert terminal.check_support() is True
+    assert terminal.terminal[0] == "kitty"
+
+
+def test_check_support_is_false_when_no_terminal_is_installed(monkeypatch):
+    monkeypatch.delenv("FLATPAK_ID", raising=False)
+    terminal = TerminalUtils()
+    monkeypatch.setattr(terminal_module.shutil, "which", lambda name: None)
+
+    assert terminal.check_support() is False
+    assert terminal.terminal is None

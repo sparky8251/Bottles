@@ -1,6 +1,5 @@
 import re
 import time
-import subprocess
 from typing import Optional
 
 from bottles.backend.logger import Logger
@@ -8,6 +7,7 @@ from bottles.backend.wine.wineprogram import WineProgram
 from bottles.backend.wine.wineserver import WineServer
 from bottles.backend.wine.wineboot import WineBoot
 from bottles.backend.utils.decorators import cache
+from bottles.backend.utils.proc import ProcUtils
 
 logging = Logger()
 
@@ -94,12 +94,8 @@ class WineDbg(WineProgram):
             )
             res = self.launch(args=args, communicate=True, action_name="kill_process")
             if res.has_data and "error 5" in res.data and name:
-                subprocess.Popen(
-                    f"kill $(pgrep {name[:15]})",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=True,
-                )
+                for proc in ProcUtils.get_by_name(name[:15]):
+                    proc.kill()
                 return
             wineboot.kill()
 

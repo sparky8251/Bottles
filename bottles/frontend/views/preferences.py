@@ -633,7 +633,11 @@ class PreferencesWindow(Adw.PreferencesDialog):
             environment = get_ui_language_environment(
                 self.settings.get_string("ui-language")
             )
-            subprocess.Popen("sleep 1 && bottles & disown", shell=True, env=environment)
+            subprocess.Popen(
+                ["sh", "-c", "sleep 1 && exec bottles"],
+                env=environment,
+                start_new_session=True,
+            )
             self.window.proper_close()
         widget.destroy()
 
