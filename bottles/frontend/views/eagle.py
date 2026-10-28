@@ -817,7 +817,7 @@ class EagleView(Gtk.Box):
         metadata = data.get("metadata", {})
         
         lines = []
-        lines.append(f"# Eagle Analysis Report")
+        lines.append("# Eagle Analysis Report")
         lines.append(f"**Target:** `{data.get('name', 'Unknown')}`")
         lines.append("")
         
@@ -912,7 +912,7 @@ class EagleView(Gtk.Box):
                     if isinstance(keys, str):
                          lines.append(f"  - *Found:* `{keys}`")
                     else:
-                        lines.append(f"  - *Found:*")
+                        lines.append("  - *Found:*")
                         for k in keys:
                              lines.append(f"    - `{k}`")
                 if source:

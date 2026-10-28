@@ -2,15 +2,9 @@
 pytest==9.1.1
 pytest-mock==3.17.0
 freezegun==1.5.5
-requirements-parser==0.13.1
 mypy==2.4.0
 PyGObject-stubs
 types_Markdown
 types-PyYAML
-types-Pygments
-types_Pygments
-types_colorama
 types_pycurl
 types_requests
-types_docutils
-pylint

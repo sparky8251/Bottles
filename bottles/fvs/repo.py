@@ -25,12 +25,17 @@ from contextlib import contextmanager
 from datetime import datetime
 from fcntl import LOCK_EX, LOCK_NB, LOCK_UN, flock
 from threading import Lock
+from typing import Optional
+
+from bottles.backend.logger import Logger
 
 from bottles.fvs.exceptions import (
     FVSNothingToCommit,
     FVSNothingToRestore,
     FVSStateNotFound,
 )
+
+logging = Logger()
 
 FVS2_CMD = "fvs2"
 
@@ -440,11 +445,11 @@ class FVSRepo:
         return self.__states
 
     @property
-    def active_state_id(self) -> str:
+    def active_state_id(self) -> Optional[str]:
         return self.__active_state_id
 
     @property
-    def active_branch(self) -> str:
+    def active_branch(self) -> Optional[str]:
         return self.__active_branch
 
     @property

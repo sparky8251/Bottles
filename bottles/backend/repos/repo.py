@@ -67,7 +67,7 @@ class Repo:
             offline=offline,
         )
 
-    def refresh(self) -> dict:
+    def refresh(self) -> dict | None:
         self.catalog = self.__get_catalog(self.index, self.offline)
         return self.catalog
 
@@ -109,7 +109,9 @@ class Repo:
             index = None
         if not isinstance(index, dict):
             logging.error(f"Invalid catalog returned by {self.name} repository.")
-            return self.__read_cache(cache_path) or {}
+            # With plain=False __read_cache returns a dict or False, never the str
+            # its annotation also allows, so this is always a dict.
+            return self.__read_cache(cache_path) or {}  # type: ignore[return-value]
 
         self.__write_cache(cache_path, data)
         logging.info(f"Catalog {self.name} loaded")

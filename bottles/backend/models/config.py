@@ -215,7 +215,9 @@ class BottleConfig(DictCompatMixIn):
             if isinstance(file, IOBase):
                 yaml.dump(self.to_dict(), file, indent=indent, encoding=encoding)
             else:
-                directory = os.path.dirname(os.path.abspath(file))
+                # Callers pass a path here; mypy cannot narrow `str | IO` through the
+                # IOBase check above, so it still sees IO as possible.
+                directory = os.path.dirname(os.path.abspath(file))  # type: ignore[type-var]
                 fd, tmp_path = tempfile.mkstemp(
                     dir=directory, prefix=".bottle-", suffix=".tmp"
                 )

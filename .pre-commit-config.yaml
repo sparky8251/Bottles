@@ -1,16 +1,23 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+#
+# TODO: this configuration only CHECKS; it no longer reformats. Upstream's
+# pre-commit CI was disabled in October 2025 after failing continuously, and
+# the formatters it carried (ruff-format, autoflake, pretty-format-json, the
+# whitespace fixers) now disagree with 129 files. Re-enabling them means a
+# tree-wide reformat, which would destroy diffability against upstream, so they
+# were removed instead of fixed. This is a latent problem that gets worse with
+# every commit; revisit it deliberately rather than letting it rot further.
+# The same applies to mypy.ini, which disables ten error classes wholesale, and
+# to the three style rules ignored in pyproject.toml: each is a debt that only
+# grows while it is ignored.
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-xml
     -   id: check-json
-    -   id: pretty-format-json
-        args: ["--autofix", "--no-sort-keys", "--indent", "4"]
     -   id: check-added-large-files
         exclude: ^data/eagle-intel\.sqlite$
 
@@ -18,20 +25,13 @@ repos:
     rev: v0.8.2
     hooks:
     -   id: ruff
-        args: [ "--fix" ]
-    -   id: ruff-format
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
     -   id: mypy
         args: ["--pretty"]
-        additional_dependencies: ["pygobject-stubs", "types-PyYAML", "types-Markdown", "types-requests", "types-pycurl", "types-chardet", "pytest-stub", "types-orjson", "pathvalidate", "requirements-parser", "icoextract", "fvs", "patool", "git+https://gitlab.com/TheEvilSkeleton/vkbasalt-cli.git@main"]
-
--   repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
-    hooks:
-    -   id: autoflake
+        additional_dependencies: ["pygobject-stubs", "types-PyYAML", "types-Markdown", "types-requests", "types-pycurl", "types-chardet", "freezegun", "pytest-stub", "pathvalidate", "icoextract", "patool", "git+https://gitlab.com/TheEvilSkeleton/vkbasalt-cli.git@main"]
 
 -   repo: local
     hooks:

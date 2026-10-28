@@ -1024,7 +1024,7 @@ class EagleManager:
 
                 except Exception as e:
                     logging.warning(f"[Eagle] Deep scan failed: {e}")
-                    self._send_step(f"Deep scan failed, continuing with surface analysis")
+                    self._send_step("Deep scan failed, continuing with surface analysis")
 
             self._send_step(_("Querying community intelligence..."))
             intel_plan = self._intel_lookup(executable_path, pe, product_name)

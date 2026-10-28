@@ -407,7 +407,7 @@ class VersioningManager:
             logging.error(f"Failed to get FVS branches: {e}")
             return []
 
-    def get_active_branch(self, config: BottleConfig) -> str:
+    def get_active_branch(self, config: BottleConfig) -> str | None:
         try:
             repo = FVSRepo(
                 repo_path=ManagerUtils.get_bottle_path(config),

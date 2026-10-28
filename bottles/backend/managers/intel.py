@@ -21,7 +21,7 @@ import sqlite3
 from difflib import SequenceMatcher
 from gettext import gettext as _
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from bottles.backend.globals import Paths
 from bottles.backend.logger import Logger
@@ -68,7 +68,7 @@ PROTON_ENV_MAP = {
     "PROTON_NO_FSYNC": ("sync", "wine", _("community disables fsync")),
 }
 
-SOURCE_ATTRIBUTION = {
+SOURCE_ATTRIBUTION: dict[str, dict[str, Any]] = {
     "protondb": {
         "name": "ProtonDB",
         "dataset": "protondb-data",

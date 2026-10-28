@@ -374,7 +374,7 @@ class BackupManager:
                 message="The program backup folder must be outside the bottle.",
             )
 
-        selected = []
+        selected: list[tuple[str, str]] = []
         for configured_path in paths:
             source = cls.resolve_program_backup_path(config, configured_path)
             if (
@@ -544,7 +544,9 @@ class BackupManager:
                 dir=destination_dir,
             )
             with os.fdopen(file_descriptor, "wb") as temp_file:
-                with _BackupTarFile.open(
+                # TarFile.open forwards extra keywords to cls(...) at runtime; typeshed
+                # does not declare them, so mypy cannot see source_path/cancel_event.
+                with _BackupTarFile.open(  # type: ignore[call-arg]
                     temp_path,
                     "w:gz",
                     fileobj=temp_file,
