@@ -9,6 +9,8 @@
 .flatpak-builder/
 /build
 /build-dir
+/build-dir-release
+/_deps-check
 /mesonbuild
 
 __pycache__

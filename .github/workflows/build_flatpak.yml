@@ -1,6 +1,7 @@
 on:
   push:
     branches: [main]
+    tags: ['*']
   pull_request:
 name: Build Flatpak
 jobs:
@@ -76,3 +77,46 @@ jobs:
           --filesystem=/tmp/gstreamer-tools-i386:ro \
           --command=/tmp/gstreamer-tools-i386/usr/bin/gst-inspect-1.0 \
           com.usebottles.bottles.Devel avdec_wmapro
+
+  release:
+    name: "release-flatpak"
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+    - uses: actions/checkout@v7.0.1
+    - uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: bottles-${{ github.ref_name }}.flatpak
+        manifest-path: build-aux/com.usebottles.bottles.json
+        cache-key: flatpak-builder-release-${{ github.sha }}
+    - name: Verify the release build on its runtime
+      run: |
+        flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+        install_ref() {
+          attempts=0
+          until flatpak install --user --noninteractive flathub "$1"; do
+            attempts=$((attempts + 1))
+            test "$attempts" -lt 5 || return 1
+            sleep $((attempts * 5))
+          done
+        }
+        install_ref org.freedesktop.Platform.Compat.i386//25.08
+        install_ref org.freedesktop.Platform.codecs_extra.i386//25.08-extra
+        flatpak install --user --noninteractive "$GITHUB_WORKSPACE/bottles-${{ github.ref_name }}.flatpak"
+        # The release build ships no checker. Generate one from meson's
+        # declaration with the SDK (configure only, no build) and run it inside
+        # the installed app, which is the Platform the release runs on.
+        flatpak run --filesystem="$GITHUB_WORKSPACE" --command=sh org.gnome.Sdk//50 -c \
+          "cd '$GITHUB_WORKSPACE' && meson setup _deps-check -Druntime_checks=disabled >/dev/null"
+        flatpak run --user --filesystem="$GITHUB_WORKSPACE" --command=python3 com.usebottles.bottles \
+          "$GITHUB_WORKSPACE/_deps-check/bottles-check-deps" --strict
+        test ! -e "$(flatpak info --user --show-location com.usebottles.bottles)/files/bin/bottles-check-deps"
+        xvfb-run -a flatpak run --user --command=bottles com.usebottles.bottles --help
+    - uses: softprops/action-gh-release@v2
+      with:
+        files: bottles-${{ github.ref_name }}.flatpak

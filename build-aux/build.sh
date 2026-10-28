@@ -3,9 +3,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-MANIFEST="$SCRIPT_DIR/com.usebottles.bottles.Devel.json"
+# Pass a manifest path to build something other than the development one,
+# e.g. the release manifest com.usebottles.bottles.json.
+MANIFEST="${1:-$SCRIPT_DIR/com.usebottles.bottles.Devel.json}"
 BUILD_DIR="$PROJECT_DIR/build-dir"
-APP_ID="com.usebottles.bottles.Devel"
+APP_ID="$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['id'])" "$MANIFEST")"
 
 echo "==> Building $APP_ID"
 echo "    Manifest: $MANIFEST"

@@ -32,3 +32,12 @@ repos:
     rev: v2.3.1
     hooks:
     -   id: autoflake
+
+-   repo: local
+    hooks:
+    -   id: devel-manifest
+        name: regenerate the development flatpak manifest
+        entry: python3 build-aux/gen-devel-manifest.py
+        language: system
+        files: ^build-aux/com\.usebottles\.bottles(\.Devel)?\.json$
+        pass_filenames: false

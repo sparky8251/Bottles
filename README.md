@@ -39,9 +39,38 @@ Refer to the [Contributing](CONTRIBUTING.md) page.
 
 ⚠️ Be sure to backup all your data before testing experimental builds of Bottles!
 
-Use the development manifest in this repository when working on Bottles. To build a stable release locally, use the manifest maintained by Flathub.
+Both flatpak manifests live in this repository under `build-aux/`:
+
+- `com.usebottles.bottles.json` is the release manifest: what a user installs.
+- `com.usebottles.bottles.Devel.json` is generated from it by
+  `build-aux/gen-devel-manifest.py` and differs only in the app id
+  (`.Devel`) and the meson profile. Edit the release manifest and regenerate;
+  a pre-commit hook does this for you.
+
+The Flathub package is built from a copy of the release manifest kept in the
+[Flathub repository](https://github.com/flathub/com.usebottles.bottles).
 
 ### Development Flatpak
+
+1. Install [`org.flatpak.Builder`](https://github.com/flathub/org.flatpak.Builder) from Flathub
+2. Clone `https://github.com/bottlesdevs/Bottles.git` (or your fork)
+3. Run `flatpak run org.flatpak.Builder --install --install-deps-from=flathub --default-branch=master --force-clean build-dir build-aux/com.usebottles.bottles.Devel.json` in the terminal from the root of the repository (use `--user` if necessary), or `build-aux/build.sh`
+4. Run `flatpak run com.usebottles.bottles.Devel` to launch it
+
+The development build installs `bottles-check-deps`, which verifies the
+installed app against the runtime dependencies declared in `meson.build`:
+`flatpak run --command=bottles-check-deps com.usebottles.bottles.Devel --strict`.
+
+### Release Flatpak
+
+Same steps with `build-aux/com.usebottles.bottles.json` (or
+`build-aux/build.sh build-aux/com.usebottles.bottles.json`), then
+`flatpak run com.usebottles.bottles`. It installs alongside a Flathub build
+with the same application ID and data directory, so changes made by either
+build affect the other. Pushing a tag builds this manifest in CI and attaches
+the bundle to the GitHub release.
+
+## Development Flatpak
 
 1. Install [`org.flatpak.Builder`](https://github.com/flathub/org.flatpak.Builder) from Flathub
 2. Clone `https://github.com/bottlesdevs/Bottles.git` (or your fork)

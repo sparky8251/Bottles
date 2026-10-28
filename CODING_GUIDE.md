@@ -30,11 +30,20 @@ pytest .
 
 ## Dependencies
 
-Regenerate PYPI dependency manifest when requirements.txt changed
+Regenerate the PyPI dependency module when requirements.txt changes (this is
+what the update-manifest workflow runs):
 
 ```bash
-python ./build-aux/flatpak-pip-generator.py --runtime org.gnome.Sdk -r requirements.txt -o com.usebottles.bottles.pypi-deps --yaml
+pip install req2flatpak
+req2flatpak --requirements-file requirements.txt --yaml --target-platforms 313-x86_64 -o build-aux/pypi-deps.yaml
 ```
+
+## Flatpak manifests
+
+`build-aux/com.usebottles.bottles.json` is the release manifest and the only
+one edited by hand. `build-aux/com.usebottles.bottles.Devel.json` is generated
+from it by `build-aux/gen-devel-manifest.py` (a pre-commit hook keeps it in
+sync); the two differ only in the app id and the meson profile.
 
 ## I18n files
 
