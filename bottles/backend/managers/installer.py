@@ -24,9 +24,9 @@ from functools import lru_cache
 from typing import Callable, Optional
 
 import markdown
-import pycurl
 
 from bottles.backend.globals import Paths
+from bottles.backend.utils.httpclient import ICON_TIMEOUT, HttpError, fetch
 from bottles.backend.logger import Logger
 from bottles.backend.managers.conf import ConfigManager
 from bottles.backend.models.config import BottleConfig
@@ -133,16 +133,10 @@ class InstallerManager:
 
             if not os.path.isfile(icon_path):
                 try:
+                    icon = fetch(icon_url, timeout=ICON_TIMEOUT)
                     with open(icon_path, "wb") as f:
-                        c = pycurl.Curl()
-                        _proxy = os.environ.get("http_proxy") or os.environ.get("https_proxy")
-                        if _proxy:
-                            c.setopt(pycurl.PROXY, _proxy)
-                        c.setopt(c.URL, icon_url)
-                        c.setopt(c.WRITEDATA, f)
-                        c.perform()
-                        c.close()
-                except pycurl.error as e:
+                        f.write(icon)
+                except (HttpError, OSError) as e:
                     logging.error(f"Failed to download icon '{icon_url}': {e}")
                     if os.path.isfile(icon_path):
                         os.remove(icon_path)

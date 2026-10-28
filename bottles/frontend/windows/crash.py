@@ -16,7 +16,8 @@
 #
 
 import contextlib
-import urllib.request
+
+from bottles.backend.utils.httpclient import ISSUES_TIMEOUT, HttpError, fetch
 import webbrowser
 from gettext import gettext as _
 
@@ -153,14 +154,12 @@ class CrashReportDialog(Adw.Window):
         similar_issues = []
         api_url = "https://api.github.com/repos/bottlesdevs/Bottles/issues?filter=all&state=all"
         with contextlib.suppress(
-            urllib.error.HTTPError,
-            urllib.error.URLError,
+            HttpError,
+            OSError,
             json.JSONDecodeError,
             TypeError,
         ):
-            with urllib.request.urlopen(api_url, timeout=10) as r:
-                data = r.read().decode("utf-8")
-                data = json.loads(data)
+            data = json.loads(fetch(api_url, timeout=ISSUES_TIMEOUT).decode("utf-8"))
 
             for d in data:
                 similarity = CrashReportDialog.__get_similarity(log, d)

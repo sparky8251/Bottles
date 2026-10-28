@@ -23,7 +23,7 @@ from contextlib import suppress
 from threading import Event
 from typing import Optional
 
-import requests
+from bottles.backend.utils import httpclient
 
 from bottles.backend.logger import Logger
 from bottles.backend.models.result import Result
@@ -69,11 +69,11 @@ class Downloader:
                 headers = {
                     "User-Agent": "curl/7.79.1"
                 }  # we fake the user-agent to avoid 403 errors on some servers
-                response = requests.get(
+                response = httpclient.get(
                     self.url,
                     stream=True,
                     headers=headers,
-                    timeout=(10, 30),
+                    timeout=httpclient.DOWNLOAD_TIMEOUT,
                 )
                 response.raise_for_status()
                 try:
@@ -106,7 +106,7 @@ class Downloader:
             with suppress(FileNotFoundError):
                 os.remove(partial_file)
             return Result(False, message="cancelled")
-        except requests.exceptions.SSLError:
+        except httpclient.SSLError:
             with suppress(OSError):
                 os.remove(partial_file)
             logging.error(
@@ -114,7 +114,7 @@ class Downloader:
                 "Your system may have a wrong date/time or wrong certificates."
             )
             return Result(False, message="Download failed due to a SSL error.")
-        except (requests.exceptions.RequestException, OSError) as error:
+        except (httpclient.HttpError, OSError) as error:
             with suppress(OSError):
                 os.remove(partial_file)
             logging.error(f"Failed to download [{self.url}]: {error}")

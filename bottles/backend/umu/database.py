@@ -2,6 +2,8 @@ import json
 import time
 import urllib.error
 import urllib.request
+
+from bottles.backend.utils.httpclient import UMU_DATABASE_TIMEOUT, HttpError, fetch
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -69,10 +71,45 @@ class UmuDatabaseEntry:
         ).casefold()
 
 
+class _FetchedResponse:
+    """What _fetch_opener yields: the read() shape urlopen gave the client."""
+
+    def __init__(self, body: bytes):
+        self._body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_exc):
+        return False
+
+    def read(self, size: int = -1) -> bytes:
+        return self._body if size is None or size < 0 else self._body[:size]
+
+
+def _fetch_opener(request: urllib.request.Request, timeout):
+    """Serve a urllib Request through the shared HTTP client.
+
+    Transport failures become urllib.error.URLError, which the client's
+    error handling already expects; an oversize body raises ValueError from
+    the size cap, which it also handles.
+    """
+    try:
+        body = fetch(
+            request.full_url,
+            timeout=timeout,
+            headers=dict(request.header_items()),
+            max_bytes=_MAX_RESPONSE_BYTES,
+        )
+    except (HttpError, OSError) as exc:
+        raise urllib.error.URLError(str(exc)) from exc
+    return _FetchedResponse(body)
+
+
 class UmuDatabaseClient:
     def __init__(self, cache_path, opener=None, clock=None):
         self.cache_path = Path(cache_path)
-        self._opener = opener or urllib.request.urlopen
+        self._opener = opener or _fetch_opener
         self._clock = clock or time.time
         self._entries = None
 
@@ -129,7 +166,7 @@ class UmuDatabaseClient:
             UMU_DATABASE_API,
             headers={"Accept": "application/json", "User-Agent": "Bottles"},
         )
-        with self._opener(request, timeout=15) as response:
+        with self._opener(request, timeout=UMU_DATABASE_TIMEOUT) as response:
             payload = response.read(_MAX_RESPONSE_BYTES + 1)
         if len(payload) > _MAX_RESPONSE_BYTES:
             raise ValueError("UMU database response is too large")

@@ -16,32 +16,23 @@
 #
 
 import time
-import urllib.error
-import urllib.request
 from gettext import gettext as _
 from typing import Optional
 
 from gi.repository import Adw, GdkPixbuf, Gio, GLib, Gtk
 
+from bottles.backend.utils.httpclient import ICON_TIMEOUT, HttpError, fetch
 from bottles.backend.utils.threading import RunAsync
 from bottles.frontend.utils.gtk import GtkUtils
-
-
-INSTALLER_ICON_USER_AGENT = "Bottles"
 
 
 def fetch_installer_icon(url: str | None) -> bytes | None:
     if url is None:
         return None
 
-    request = urllib.request.Request(
-        url,
-        headers={"User-Agent": INSTALLER_ICON_USER_AGENT},
-    )
     try:
-        with urllib.request.urlopen(request, timeout=10) as response:
-            return response.read()
-    except (urllib.error.HTTPError, urllib.error.URLError, OSError, ValueError):
+        return fetch(url, timeout=ICON_TIMEOUT)
+    except (HttpError, OSError, ValueError):
         return None
 
 

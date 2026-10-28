@@ -41,6 +41,7 @@ from gi.repository import Gio, GLib, Secret  # noqa: E402
 
 from bottles.backend.globals import Paths, is_cpak
 from bottles.backend.logger import Logger
+from bottles.backend.utils.httpclient import new_session
 from bottles.backend.utils.proc import ProcUtils
 
 logging = Logger()
@@ -750,7 +751,7 @@ class MicrosoftIdentityProvider:
         auth_complete: Optional[Callable[[Optional[bool], str], None]] = None,
     ):
         self.store = store
-        self.session = session or requests.Session()
+        self.session = session or new_session()
         self.open_uri = open_uri or self._open_uri
         self.listener_factory = listener_factory
         self.auth_complete = auth_complete

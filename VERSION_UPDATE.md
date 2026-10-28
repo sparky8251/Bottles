@@ -1,4 +1,3 @@
 ### Paths to be updated
-- VERSION
-- data/com.usebottles.metainfo.xml.in
-- meson.build
+- VERSION (meson, the app and the user agent read it)
+- data/com.usebottles.metainfo.xml.in (release notes entry)

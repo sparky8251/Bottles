@@ -1,6 +1,5 @@
 # Updated using pur -r requirements.txt
 PyYAML==6.0.3
-pycurl==7.48.0
 chardet==7.7.0
 requests[use_chardet_on_py3]==2.34.2
 PySocks==1.7.1

@@ -4,7 +4,7 @@ name: python3-package-installation
 buildsystem: simple
 build-commands:
 - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}"
-  --prefix=${FLATPAK_DEST} --no-build-isolation PyYAML pycurl chardet requests
+  --prefix=${FLATPAK_DEST} --no-build-isolation PyYAML chardet requests
   PySocks Markdown icoextract patool pathvalidate pycairo PyGObject charset-normalizer
   idna urllib3 certifi pefile yara-python
 sources:
@@ -53,11 +53,6 @@ sources:
 - type: file
   url: https://files.pythonhosted.org/packages/bb/5e/19ab2572981a996ce96b853a189d2dcced40506b67d9555a7568457abcf2/pycairo-1.29.2.tar.gz
   sha256: 3e69fff74fe64f5ba2dfa31f67c6bdf26413342574047437d2ac520d35e9a489
-- type: file
-  url: https://files.pythonhosted.org/packages/b6/20/c1b3a90aa44bab3cf5f4f5bddb6ba85b9a57f3d7b95b807b497290f9f92e/pycurl-7.48.0-cp313-cp313-manylinux_2_28_x86_64.whl
-  sha256: aaed3cc92d380075909b5b5ed3c385d34fc0364bd0c5f6b984c1148674ae1e57
-  only-arches:
-  - x86_64
 - type: file
   url: https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl
   sha256: 2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0

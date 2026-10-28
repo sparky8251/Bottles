@@ -1,6 +1,6 @@
 project(
 	'bottles',
-	version: '67.5',
+	version: files('VERSION'),
 	meson_version: '>= 1.5.0',
 	default_options: [
 		'warning_level=2',
@@ -58,7 +58,6 @@ runtime_python_modules = [
 	'gi',
 	'cairo',
 	'yaml',
-	'pycurl',
 	'chardet',
 	'requests',
 	'markdown',

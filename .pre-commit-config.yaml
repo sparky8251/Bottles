@@ -31,7 +31,7 @@ repos:
     hooks:
     -   id: mypy
         args: ["--pretty"]
-        additional_dependencies: ["pygobject-stubs", "types-PyYAML", "types-Markdown", "types-requests", "types-pycurl", "types-chardet", "freezegun", "pytest-stub", "pathvalidate", "icoextract", "patool", "git+https://gitlab.com/TheEvilSkeleton/vkbasalt-cli.git@main"]
+        additional_dependencies: ["pygobject-stubs", "types-PyYAML", "types-Markdown", "types-requests", "types-chardet", "freezegun", "pytest-stub", "pathvalidate", "icoextract", "patool", "git+https://gitlab.com/TheEvilSkeleton/vkbasalt-cli.git@main"]
 
 -   repo: local
     hooks:

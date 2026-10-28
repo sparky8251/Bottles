@@ -2,7 +2,7 @@ from threading import Event
 from types import SimpleNamespace
 
 import pytest
-import requests
+from bottles.backend.utils import httpclient
 
 from bottles.backend import downloader as downloader_module
 from bottles.backend.downloader import Downloader
@@ -23,7 +23,7 @@ def test_interrupted_download_is_not_cached(tmp_path, monkeypatch):
         iter_content=chunks,
         close=lambda: None,
     )
-    monkeypatch.setattr(downloader_module.requests, "get", lambda *a, **kw: response)
+    monkeypatch.setattr(downloader_module.httpclient, "get", lambda *a, **kw: response)
 
     with pytest.raises(SystemExit):
         Downloader("https://example.org/dependency.exe", str(destination)).download()
@@ -51,7 +51,7 @@ def test_failed_download_preserves_existing_file(tmp_path, monkeypatch, cancel):
 
     def chunks(size):
         yield b"partial"
-        raise requests.ConnectionError("connection lost")
+        raise httpclient.HttpError("connection lost")
 
     response = SimpleNamespace(
         headers={"content-length": "14"},
@@ -59,7 +59,7 @@ def test_failed_download_preserves_existing_file(tmp_path, monkeypatch, cancel):
         iter_content=chunks,
         close=lambda: None,
     )
-    monkeypatch.setattr(downloader_module.requests, "get", lambda *a, **kw: response)
+    monkeypatch.setattr(downloader_module.httpclient, "get", lambda *a, **kw: response)
 
     assert not Downloader(
         "https://example.org/dependency.exe", str(destination), cancel_event=event
@@ -76,7 +76,7 @@ def test_download_without_content_length(tmp_path, monkeypatch):
         iter_content=lambda size: iter([b"complete"]),
         close=lambda: None,
     )
-    monkeypatch.setattr(downloader_module.requests, "get", lambda *a, **kw: response)
+    monkeypatch.setattr(downloader_module.httpclient, "get", lambda *a, **kw: response)
 
     assert Downloader(
         "https://example.org/dependency.exe", str(destination)
@@ -99,7 +99,7 @@ def test_download_handles_repeated_or_invalid_content_length(tmp_path, monkeypat
         iter_content=lambda size: iter([b"complete"]),
         close=lambda: closed.append(True),
     )
-    monkeypatch.setattr(downloader_module.requests, "get", lambda *a, **kw: response)
+    monkeypatch.setattr(downloader_module.httpclient, "get", lambda *a, **kw: response)
     result = Downloader(
         "https://example.org/dependency.exe", str(destination),
         update_func=lambda *args, **kwargs: updates.append((args, kwargs)),
@@ -121,7 +121,7 @@ def test_cancelled_download_does_not_start_request(tmp_path, monkeypatch):
     def request(*args, **kwargs):
         pytest.fail("cancelled download started a request")
 
-    monkeypatch.setattr(downloader_module.requests, "get", request)
+    monkeypatch.setattr(downloader_module.httpclient, "get", request)
     result = Downloader(
         "https://example.org/dependency.exe", str(destination), cancel_event=event
     ).download()
@@ -153,7 +153,7 @@ def test_cancelled_stream_preserves_existing_file(tmp_path, monkeypatch, length,
         iter_content=chunks,
         close=lambda: closed.append(True),
     )
-    monkeypatch.setattr(downloader_module.requests, "get", lambda *a, **kw: response)
+    monkeypatch.setattr(downloader_module.httpclient, "get", lambda *a, **kw: response)
     result = Downloader(
         "https://example.org/dependency.exe",
         str(destination),

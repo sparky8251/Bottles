@@ -20,7 +20,7 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-import requests
+from bottles.backend.utils.httpclient import ARTWORK_TIMEOUT, get
 
 from bottles.backend.globals import Paths
 from bottles.backend.logger import Logger
@@ -34,8 +34,9 @@ class SteamGridDBManager:
     @staticmethod
     def get_game_grid(name: str, config: Optional[BottleConfig] = None):
         try:
-            res = requests.get(
-                f"https://steamgrid.usebottles.com/api/search/{name}", timeout=10
+            res = get(
+                f"https://steamgrid.usebottles.com/api/search/{name}",
+                timeout=ARTWORK_TIMEOUT,
             )
         except:
             return
@@ -59,7 +60,7 @@ class SteamGridDBManager:
         path = os.path.join(grids_path, filename)
 
         try:
-            r = requests.get(url, timeout=10)
+            r = get(url, timeout=ARTWORK_TIMEOUT)
             with open(path, "wb") as f:
                 f.write(r.content)
         except Exception:

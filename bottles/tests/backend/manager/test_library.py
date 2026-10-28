@@ -335,7 +335,7 @@ def test_umu_remote_thumbnail_uses_separate_cover_storage(monkeypatch, tmp_path)
         content = PNG_DATA
 
     monkeypatch.setattr(
-        steamgriddb_module.requests,
+        steamgriddb_module,
         "get",
         lambda url, **_kwargs: ImageResponse()
         if url == "https://example.com/control.png"

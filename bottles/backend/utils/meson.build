@@ -9,6 +9,7 @@ bottles_sources = [
   'manager.py',
   'vulkan.py',
   'vulkanprobe.py',
+  'httpclient.py',
   'terminal.py',
   'file.py',
   'generic.py',

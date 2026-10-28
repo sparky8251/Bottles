@@ -20,11 +20,10 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import Optional
 
-import pycurl
 
 from bottles.backend.logger import Logger
 from bottles.backend.models.result import Result
-from bottles.backend.params import APP_VERSION
+from bottles.backend.utils.httpclient import PING_TIMEOUT, Cancelled, head_ok
 from bottles.backend.state import Notification, SignalManager, Signals
 
 logging = Logger()
@@ -65,47 +64,18 @@ class ConnectionUtils:
         self._status = value
         SignalManager.send(Signals.NetworkStatusChanged, Result(status=self.status))
 
-    def __curl_progress(self, _download_t, _download_d, _upload_t, _upload_d):
-        if self.do_check_connection:
-            return pycurl.E_OK
-        else:
-            self.aborted_connections += 1
-            return pycurl.E_ABORTED_BY_CALLBACK
-
     def stop_check(self, res: Result):
         if res.status:
             self.do_check_connection = False
 
     def __ping(self, url: str) -> bool:
-        c = pycurl.Curl()
-        _proxy = os.environ.get("http_proxy") or os.environ.get("https_proxy")
-        if _proxy:
-            c.setopt(pycurl.PROXY, _proxy)
-        c.setopt(c.URL, url)
-        c.setopt(c.FOLLOWLOCATION, True)
-        c.setopt(c.NOBODY, True)
-        c.setopt(c.NOPROGRESS, False)
-        c.setopt(c.XFERINFOFUNCTION, self.__curl_progress)
-        c.setopt(pycurl.USERAGENT, f"Bottles/{APP_VERSION}")
-        # bound the check so a stalled/filtered connection cannot hang the
-        # whole startup; on timeout we simply fall back to offline mode
-        c.setopt(pycurl.CONNECTTIMEOUT, 5)
-        c.setopt(pycurl.TIMEOUT, 10)
+        # bounded by PING_TIMEOUT so a stalled or filtered connection cannot
+        # hang startup; a timeout simply means offline
         try:
-            try:
-                c.perform()
-            except pycurl.error as error:
-                if error.args[0] not in (
-                    pycurl.E_COULDNT_RESOLVE_HOST,
-                    pycurl.E_COULDNT_CONNECT,
-                    pycurl.E_OPERATION_TIMEDOUT,
-                ):
-                    raise
-                c.setopt(pycurl.IPRESOLVE, pycurl.IPRESOLVE_V4)
-                c.perform()
-            return c.getinfo(pycurl.HTTP_CODE) == 200
-        finally:
-            c.close()
+            return head_ok(url, timeout=PING_TIMEOUT, cancel=lambda: not self.do_check_connection)
+        except Cancelled:
+            self.aborted_connections += 1
+            raise
 
     def check_connection(self, show_notification=False) -> Optional[bool]:
         """check network status, send result through signal NetworkReady and return"""

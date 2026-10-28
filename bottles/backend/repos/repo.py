@@ -18,14 +18,12 @@ from hashlib import sha256
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from io import BytesIO
 
-import pycurl
 
 from bottles.backend.globals import Paths
 from bottles.backend.logger import Logger
 from bottles.backend.state import EventManager, Events
-from bottles.backend.params import APP_VERSION
+from bottles.backend.utils.httpclient import CATALOG_TIMEOUT, HttpError, fetch
 from bottles.backend.utils import yaml
 from bottles.backend.utils.threading import RunAsync
 
@@ -77,27 +75,8 @@ class Repo:
             return self.__read_cache(cache_path) or {}
 
         try:
-            buffer = BytesIO()
-
-            c = pycurl.Curl()
-            try:
-                _proxy = os.environ.get("http_proxy") or os.environ.get("https_proxy")
-
-                if _proxy:
-                    c.setopt(pycurl.PROXY, _proxy)
-                c.setopt(c.URL, index)
-                c.setopt(c.FOLLOWLOCATION, True)
-                c.setopt(c.FAILONERROR, True)
-                c.setopt(c.WRITEDATA, buffer)
-                c.setopt(pycurl.USERAGENT,f"Bottles/{APP_VERSION}")
-                c.setopt(pycurl.CONNECTTIMEOUT, 10)
-                c.setopt(pycurl.TIMEOUT, 30)
-                c.perform()
-            finally:
-                c.close()
-
-            return self.__parse_catalog(buffer.getvalue())
-        except (pycurl.error, yaml.YAMLError):
+            return self.__parse_catalog(fetch(index, timeout=CATALOG_TIMEOUT))
+        except (HttpError, OSError, yaml.YAMLError):
             logging.error(f"Cannot fetch {self.name} repository index.")
             return self.__read_cache(cache_path) or {}
 
@@ -128,26 +107,7 @@ class Repo:
             return self.__read_cache(cache_path, plain=plain) or False
 
         try:
-            buffer = BytesIO()
-
-            c = pycurl.Curl()
-            try:
-                _proxy = os.environ.get("http_proxy") or os.environ.get("https_proxy")
-
-                if _proxy:
-                    c.setopt(pycurl.PROXY, _proxy)
-                c.setopt(c.URL, url)
-                c.setopt(c.FOLLOWLOCATION, True)
-                c.setopt(c.FAILONERROR, True)
-                c.setopt(c.WRITEDATA, buffer)
-                c.setopt(pycurl.USERAGENT,f"Bottles/{APP_VERSION}")
-                c.setopt(pycurl.CONNECTTIMEOUT, 10)
-                c.setopt(pycurl.TIMEOUT, 30)
-                c.perform()
-            finally:
-                c.close()
-
-            res = buffer.getvalue()
+            res = fetch(url, timeout=CATALOG_TIMEOUT)
             manifest = yaml.load(res)
             if not isinstance(manifest, dict):
                 logging.error(f"Invalid manifest returned by {self.name} repository.")
@@ -157,7 +117,7 @@ class Repo:
             if plain:
                 return res.decode("utf-8")
             return manifest
-        except (OSError, UnicodeDecodeError, pycurl.error, yaml.YAMLError):
+        except (OSError, UnicodeDecodeError, HttpError, yaml.YAMLError):
             logging.error(f"Cannot fetch {self.name} manifest.")
             return self.__read_cache(cache_path, plain=plain) or False
 
