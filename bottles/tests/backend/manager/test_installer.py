@@ -774,3 +774,37 @@ def test_installer_skips_installed_dependencies(mocker):
     )
 
     manager.dependency_manager.install.assert_not_called()
+
+
+def test_installer_steps_ignore_for_as_the_old_loop_did(mocker):
+    # the old installer loop never read `for`; a win32-only step still runs
+    # on a win64 bottle
+    executor = mocker.patch(
+        "bottles.backend.steps.executors.bottle.WineExecutor",
+        autospec=True,
+    )
+    executor.return_value.run.return_value = Result(True)
+    manager = mocker.Mock()
+    manager.component_manager.download.return_value = True
+    installer = object.__new__(InstallerManager)
+    installer._InstallerManager__manager = manager
+    installer._InstallerManager__local_resources = {}
+    manifest = {
+        "Name": "x",
+        "Executable": {"file": "x.exe", "name": "X"},
+        "Steps": [
+            {
+                "action": "install_exe",
+                "file_name": "setup.exe",
+                "url": "https://example.invalid/setup.exe",
+                "for": ["win32"],
+            }
+        ],
+    }
+    mocker.patch.object(installer, "get_installer", return_value=manifest)
+    mocker.patch.object(installer, "_InstallerManager__register_executable", return_value=True)
+
+    result = installer.install(BottleConfig(Name="Test", Arch="win64"), ["x", {}], step_fn=lambda: None)
+
+    assert result.ok, result.data
+    assert executor.call_count == 1

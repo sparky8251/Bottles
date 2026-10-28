@@ -1,10 +1,13 @@
 # The YAML frontend: a manifest dict in, a Program out.
 #
-# This is the one place the manifest shape is checked. It accepts exactly
-# what DependencyManager.install and InstallerManager.install accepted and
-# raises ManifestError with the message those methods showed. It performs no
-# optimization: every step becomes one opcode in manifest order with its
-# fields as written, arch filtering included, and the machine decides later.
+# This is the one place the manifest shape is checked. By default (lax) it
+# accepts exactly what DependencyManager.install and InstallerManager.install
+# accepted and raises ManifestError with the message those methods showed;
+# like the old loops it drops a key no opcode defines and lowers an action
+# no opcode defines to a no-op. With strict=True all of that is an error,
+# which is the rule for the next grammar and what `manifest check --strict`
+# lints against. It performs no optimization: every step becomes one opcode
+# in manifest order, arch filtering included, and the machine decides later.
 import os
 from typing import Optional, TypeGuard
 
@@ -15,6 +18,7 @@ from bottles.backend.steps.grammar import (
     DependencyHeader,
     InstallerHeader,
     InstallFile,
+    LegacyNoop,
     Op,
     OverrideDll,
     Program,
@@ -28,28 +32,28 @@ class ManifestError(ValueError):
         self.message = message
 
 
-def parse(manifest: object, kind: ProgramKind, name: str) -> Program:
+def parse(manifest: object, kind: ProgramKind, name: str, strict: bool = False) -> Program:
     if not isinstance(manifest, dict):
         raise ManifestError(f"Cannot find manifest for {name}.")
     if kind is ProgramKind.DEPENDENCY:
-        return _parse_dependency(manifest, name)
-    return _parse_installer(manifest, name)
+        return _parse_dependency(manifest, name, strict)
+    return _parse_installer(manifest, name, strict)
 
 
-def parse_file(path: str, kind: ProgramKind) -> Program:
+def parse_file(path: str, kind: ProgramKind, strict: bool = False) -> Program:
     with open(path, "rb") as handle:
         manifest = yaml.safe_load(handle)
     name = os.path.splitext(os.path.basename(path))[0]
     if isinstance(manifest, dict) and isinstance(manifest.get("Name"), str):
         name = manifest["Name"]
-    return parse(manifest, kind, name)
+    return parse(manifest, kind, name, strict)
 
 
 def _is_str_list(value: object) -> TypeGuard[list[str]]:
     return isinstance(value, list) and all(isinstance(item, str) for item in value)
 
 
-def _parse_dependency(manifest: dict, name: str) -> Program:
+def _parse_dependency(manifest: dict, name: str, strict: bool) -> Program:
     invalid = ManifestError(f"Invalid manifest for {name}.")
     dependencies = manifest.get("Dependencies", [])
     steps = manifest.get("Steps")
@@ -75,10 +79,10 @@ def _parse_dependency(manifest: dict, name: str) -> Program:
         uninstaller=uninstaller if isinstance(uninstaller, str) else None,
         conflicts=tuple(conflicts) if _is_str_list(conflicts) else (),
     )
-    return Program(ProgramKind.DEPENDENCY, header, _lower(steps, ProgramKind.DEPENDENCY, invalid))
+    return Program(ProgramKind.DEPENDENCY, header, _lower(steps, ProgramKind.DEPENDENCY, invalid, strict))
 
 
-def _parse_installer(manifest: dict, name: str) -> Program:
+def _parse_installer(manifest: dict, name: str, strict: bool) -> Program:
     invalid = ManifestError("Installer is not well configured.")
     executables = manifest.get("Executables")
     optional_executables = executables is not None
@@ -110,17 +114,21 @@ def _parse_installer(manifest: dict, name: str) -> Program:
         checks=manifest.get("Checks") or None,
         installers=tuple(installers) if isinstance(installers, list) else (),
     )
-    return Program(ProgramKind.INSTALLER, header, _lower(steps, ProgramKind.INSTALLER, invalid))
+    return Program(ProgramKind.INSTALLER, header, _lower(steps, ProgramKind.INSTALLER, invalid, strict))
 
 
-def _lower(steps: list, kind: ProgramKind, invalid: ManifestError) -> tuple[Op, ...]:
+def _lower(steps: list, kind: ProgramKind, invalid: ManifestError, strict: bool) -> tuple[Op, ...]:
     table = OPCODES[kind]
     ops = []
     for step in steps:
-        cls = table.get(step["action"])
-        if cls is None:
-            raise invalid
-        values = {"spelling": step["action"]}
+        action = step["action"]
+        cls = table.get(action)
+        if cls is None or (strict and cls.opcode.startswith("legacy_")):
+            if strict:
+                raise invalid
+            # the old loops fell through on an action they did not know
+            cls = LegacyNoop
+        values = {"spelling": action}
         for key, value in step.items():
             if key == "action":
                 continue
@@ -128,7 +136,10 @@ def _lower(steps: list, kind: ProgramKind, invalid: ManifestError) -> tuple[Op, 
                 values["arches"] = tuple(value) if isinstance(value, list) else value
                 continue
             if key not in cls.__dataclass_fields__:
-                raise invalid
+                if strict:
+                    raise invalid
+                # the old handlers never read it
+                continue
             values[key] = tuple(value) if isinstance(value, list) else value
         ops.append(cls(**values))
     return tuple(ops)

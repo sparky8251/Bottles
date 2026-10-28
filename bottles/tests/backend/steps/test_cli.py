@@ -47,3 +47,11 @@ def test_check_passes_quietly():
     result = _run("check", "dependency", str(CORPUS / "dependencies/Essentials/dotnet472.yml"))
     assert result.returncode == 0
     assert result.stdout == "" and result.stderr == ""
+
+
+def test_strict_rejects_what_lax_tolerates():
+    path = str(CORPUS / "installers/Games/starcitizen.yml")
+    assert _run("check", "installer", path).returncode == 0
+    strict = _run("check", "installer", path, "--strict")
+    assert strict.returncode == 1
+    assert strict.stderr.strip() == "Installer is not well configured."

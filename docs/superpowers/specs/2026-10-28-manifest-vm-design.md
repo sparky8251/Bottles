@@ -74,12 +74,13 @@ extension inside `WineExecutor`. `copy_dll`/`copy_file` and
 `monitoring`, a `local` URL convention for user-supplied files, no
 success-code list, no staging into the prefix.
 
-The two `legacy_*` opcodes are reservations for back-compatibility, not a
-rule. Two pinned installers use them (Star Citizen `set_windows`, itch.io
-`check_file_exist`), and the installer interpreter has always run them as
-silent successes. They stay no-ops that log at warning. Any other action
-outside its program kind is a parse error. No pinned manifest hits that
-error.
+The two `legacy_*` opcodes name the two cases that ship today: Star
+Citizen's `set_windows` and itch.io's `check_file_exist`, which the
+installer interpreter has always run as silent successes. They stay no-ops
+that log at warning. In lax mode (see "Two modes") any other action no
+opcode defines lowers to the generic `legacy_noop`, carrying the spelling,
+because that is what both old loops did; in strict mode all three are
+parse errors.
 
 ### Attributes on every opcode
 
@@ -161,6 +162,19 @@ plus a program kind. Output: a program, or an error carrying the message
 today's code produces, since those reach the UI ("Invalid manifest for
 X.", "Cannot find manifest for X.").
 
+### Two modes
+
+The YAML frontend is the legacy frontend. It has to stay for several
+releases alongside the next grammar so a migration can happen, so by
+default it is a drop-in replacement for the old loops, including what they
+tolerated: `parse(..., strict=False)` drops a key no opcode defines (the
+handlers never read it) and lowers an action no opcode defines to
+`legacy_noop` (the if-chains fell through and counted the step a success).
+The managers always call the default. With `strict=True` both are errors
+and so are the two named legacy spellings; that is the rule the next
+grammar's frontend will apply, and what `manifest check --strict` lints a
+manifest against today. Nothing else differs between the modes.
+
 One validator replaces three. It takes the strictest accept set, which is
 `install`'s, because that is the one that gates execution. Where
 `is_dependency_cached` would have accepted something `install` rejects,
@@ -178,9 +192,9 @@ opcode per line, fields included, in the same form the recording executor
 writes. `check KIND SOURCE` parses only and exits non-zero with the
 parser's message.
 
-`python -m bottles.backend.steps VERB KIND PATH` is the dependency-free
-entry point: it takes a YAML path and imports only the grammar and the
-frontend. `bottles-cli manifest VERB KIND SOURCE` calls the same function
+`python -m bottles.backend.steps VERB KIND PATH [--strict]` is the
+dependency-free entry point: it takes a YAML path and imports only the
+grammar and the frontend. `bottles-cli manifest VERB KIND SOURCE` calls the same function
 and also accepts a catalog name, resolved through the Manager;
 `bottles-cli` imports GTK at module level, so it carries that
 requirement. Both ship in every build.
@@ -242,6 +256,21 @@ private names are re-pointed at the public seam.
 Artifacts: Devel flatpak and cpak build, strict checker, and the live
 check extended with one real dependency install into a throwaway bottle,
 run by the user since it needs a runner.
+
+## Compatibility notes
+
+Byte-identical holds for the pinned corpus, and lax mode extends it to the
+inputs the corpus does not cover: unknown keys and actions behave as the
+old loops behaved, umu's planner keeps its own shape messages ("Invalid
+Bottles dependency X", "Invalid dependency chain for X") ahead of the
+parser's, and neither the installer loop nor umu filters steps by `for`
+(the machine runs them with `arch=None`; only dependency programs are
+arch-filtered, as before).
+
+The one deliberate difference: `is_dependency_cached` uses the install
+validator's accept set rather than its own slightly looser one, so a
+manifest the old cache check called cached and the install then rejected
+now shows as not cached. Same outcome, one click earlier.
 
 ## Later, and not precluded
 

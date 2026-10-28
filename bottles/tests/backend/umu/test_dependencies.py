@@ -255,3 +255,20 @@ def test_umu_plan_reports_malformed_manifest_with_the_parser_message(monkeypatch
     assert installer.is_compatible("bad") is False
     with pytest.raises(UmuDependencyError, match=r"Invalid manifest for bad\."):
         installer._plan(("bad",), set())
+
+
+def test_umu_plan_keeps_its_own_messages_for_a_malformed_manifest(monkeypatch, tmp_path):
+    installer, _repository, _game, _downloads, _executor = _installer(
+        tmp_path,
+        monkeypatch,
+        {
+            "steps": {"Dependencies": [], "Steps": "nope"},
+            "chain": {"Dependencies": [3], "Steps": []},
+        },
+    )
+    from bottles.backend.umu.dependencies import UmuDependencyError
+
+    with pytest.raises(UmuDependencyError, match="Invalid Bottles dependency steps"):
+        installer._plan(("steps",), set())
+    with pytest.raises(UmuDependencyError, match="Invalid dependency chain for chain"):
+        installer._plan(("chain",), set())

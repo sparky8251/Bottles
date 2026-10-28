@@ -356,10 +356,11 @@ class InstallerManager:
                 log_fn=log_fn if is_final else None,
                 local_resources=self.__local_resources,
             )
+            # the installer loop never read `for`, so every step runs
             result = run(
                 program,
                 executor,
-                _config.Arch,
+                None,
                 Callbacks(step=step_fn if is_final else None),
             )
             if not result.ok:

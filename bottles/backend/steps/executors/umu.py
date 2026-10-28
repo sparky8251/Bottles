@@ -25,6 +25,7 @@ from bottles.backend.steps.grammar import (
     InstallFile,
     InstallFonts,
     LegacyCheckFileExist,
+    LegacyNoop,
     LegacySetWindows,
     Op,
     OverrideDll,
@@ -217,5 +218,8 @@ class UmuStepExecutor:
         return self._unreachable(op)
 
     def legacy_check_file_exist(self, op: LegacyCheckFileExist) -> Result:
+        return self._unreachable(op)
+
+    def legacy_noop(self, op: LegacyNoop) -> Result:
         return self._unreachable(op)
 

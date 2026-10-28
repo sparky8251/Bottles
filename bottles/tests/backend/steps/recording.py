@@ -4,7 +4,7 @@ import json
 from typing import Optional
 
 from bottles.backend.models.result import Result
-from bottles.backend.steps.grammar import OPCODES, Op, Program, ProgramKind
+from bottles.backend.steps.grammar import ALL_OPCODES, Op, Program, ProgramKind
 from bottles.backend.steps.machine import Callbacks, run
 
 
@@ -48,6 +48,5 @@ def _plain(value):
     return json.loads(json.dumps(value, sort_keys=True))
 
 
-for _table in OPCODES.values():
-    for _cls in set(_table.values()):
-        setattr(RecordingExecutor, _cls.opcode, RecordingExecutor._record)
+for _cls in ALL_OPCODES:
+    setattr(RecordingExecutor, _cls.opcode, RecordingExecutor._record)

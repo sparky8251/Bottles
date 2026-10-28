@@ -19,6 +19,7 @@ from bottles.backend.steps.grammar import (
     InstallFile,
     InstallFonts,
     LegacyCheckFileExist,
+    LegacyNoop,
     LegacySetWindows,
     OverrideDll,
     Program,
@@ -65,6 +66,7 @@ class Executor(Protocol):
     def update_config(self, op: UpdateConfig) -> Result: ...
     def legacy_set_windows(self, op: LegacySetWindows) -> Result: ...
     def legacy_check_file_exist(self, op: LegacyCheckFileExist) -> Result: ...
+    def legacy_noop(self, op: LegacyNoop) -> Result: ...
 
 
 @dataclass
@@ -83,7 +85,8 @@ def run(
     callbacks: Optional[Callbacks] = None,
 ) -> Result:
     """Run every opcode that applies to `arch`, in order; with arch None every
-    opcode runs, which is how umu always treated dependency steps.
+    opcode runs, which is how the installer and umu loops always treated
+    their steps (neither read `for`).
 
     Returns the executor's failing Result unchanged when a halting opcode
     fails; otherwise Result(True) with data {"uninstaller": flag}, the flag

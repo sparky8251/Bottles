@@ -38,6 +38,7 @@ from bottles.backend.steps.grammar import (
     InstallFile,
     InstallFonts,
     LegacyCheckFileExist,
+    LegacyNoop,
     LegacySetWindows,
     OverrideDll,
     RegisterDll,
@@ -943,5 +944,9 @@ class BottleStepExecutor:
 
     def legacy_check_file_exist(self, op: LegacyCheckFileExist) -> Result:
         logging.warning(f"Skipping unsupported installer step {op.spelling}")
+        return Result(True)
+
+    def legacy_noop(self, op: LegacyNoop) -> Result:
+        logging.warning(f"Skipping unsupported step {op.spelling}")
         return Result(True)
 

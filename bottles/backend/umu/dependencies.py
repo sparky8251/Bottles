@@ -39,6 +39,12 @@ class UmuDependencyInstaller:
             manifest = self.manager.dependency_manager.get_dependency(name)
             if not isinstance(manifest, dict):
                 raise UmuDependencyError(f"Cannot find Bottles dependency {name}")
+            dependencies = manifest.get("Dependencies", [])
+            steps = manifest.get("Steps")
+            if not isinstance(dependencies, list) or not isinstance(steps, list):
+                raise UmuDependencyError(f"Invalid Bottles dependency {name}")
+            if not all(isinstance(dependency, str) for dependency in dependencies):
+                raise UmuDependencyError(f"Invalid dependency chain for {name}")
             try:
                 program = parse(manifest, ProgramKind.DEPENDENCY, name)
             except ManifestError as error:

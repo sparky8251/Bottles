@@ -328,6 +328,11 @@ class CLI:
         manifest_parser.add_argument(
             "source", help="Catalog name, or path to a manifest YAML file"
         )
+        manifest_parser.add_argument(
+            "--strict",
+            action="store_true",
+            help="Reject unknown keys and actions instead of tolerating them",
+        )
 
         self.__process_args()
 
@@ -413,7 +418,10 @@ class CLI:
         from bottles.backend.steps.yaml_frontend import ManifestError, parse
 
         if os.path.isfile(self.args.source):
-            return steps_main([self.args.verb, self.args.kind, self.args.source])
+            argv = [self.args.verb, self.args.kind, self.args.source]
+            if self.args.strict:
+                argv.append("--strict")
+            return steps_main(argv)
 
         manager = Manager(g_settings=self.settings, is_cli=True)
         if self.args.kind == "dependency":
@@ -421,7 +429,9 @@ class CLI:
         else:
             manifest = manager.installer_manager.get_installer(self.args.source)
         try:
-            program = parse(manifest, ProgramKind(self.args.kind), self.args.source)
+            program = parse(
+                manifest, ProgramKind(self.args.kind), self.args.source, strict=self.args.strict
+            )
         except ManifestError as error:
             sys.stderr.write(error.message + "\n")
             return 1

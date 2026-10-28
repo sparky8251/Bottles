@@ -18,10 +18,15 @@ def main(argv: list[str]) -> int:
     parser.add_argument("verb", choices=["check", "dump"])
     parser.add_argument("kind", choices=[kind.value for kind in ProgramKind])
     parser.add_argument("path", help="path to the manifest YAML file")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="reject unknown keys and actions instead of tolerating them as Bottles does",
+    )
     args = parser.parse_args(argv)
 
     try:
-        program = parse_file(args.path, ProgramKind(args.kind))
+        program = parse_file(args.path, ProgramKind(args.kind), strict=args.strict)
     except ManifestError as error:
         print(error.message, file=sys.stderr)
         return 1

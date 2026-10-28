@@ -38,7 +38,7 @@ class Op:
     spelling: str = ""
 
     def __post_init__(self):
-        if not self.spelling:
+        if not self.spelling and self.spellings:
             object.__setattr__(self, "spelling", self.spellings[0])
 
     def applies_to(self, arch: str) -> bool:
@@ -414,6 +414,23 @@ class LegacyCheckFileExist(Op):
         return "Skipping check_file_exist"
 
 
+@dataclass(frozen=True)
+class LegacyNoop(Op):
+    # lax mode lowers an action no opcode defines to this: the old loops fell
+    # through their if-chains and counted the step as a success. It has no
+    # spelling of its own, so it is never in OPCODES; strict mode rejects
+    # the action instead. It serves both program kinds; `kind` is only set
+    # because Op requires one, and nothing reads it for this class.
+    opcode = "legacy_noop"
+    spellings = ()
+    kind = ProgramKind.DEPENDENCY
+
+    def describe(self) -> str:
+        # the old dependency loop's fallback text for an action it had no
+        # description for
+        return _("Running {0}...").format(self.spelling.replace("_", " "))
+
+
 def _collect() -> dict[ProgramKind, dict[str, type[Op]]]:
     table: dict[ProgramKind, dict[str, type[Op]]] = {kind: {} for kind in ProgramKind}
     for cls in Op.__subclasses__():
@@ -424,6 +441,12 @@ def _collect() -> dict[ProgramKind, dict[str, type[Op]]]:
 
 
 OPCODES: dict[ProgramKind, dict[str, type[Op]]] = _collect()
+
+# every opcode class an executor must implement: the spelled ones plus the
+# lax-mode fallback
+ALL_OPCODES: tuple[type[Op], ...] = tuple(
+    sorted({cls for table in OPCODES.values() for cls in table.values()} | {LegacyNoop}, key=lambda c: c.opcode)
+)
 
 
 # --- programs -----------------------------------------------------------

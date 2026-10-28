@@ -10,6 +10,7 @@ from bottles.backend.steps.grammar import (
     CopyFile,
     InstallFile,
     LegacyCheckFileExist,
+    LegacyNoop,
     LegacySetWindows,
     ProgramKind,
 )
@@ -32,30 +33,45 @@ def test_rejects_non_dict_step_with_the_ui_message():  # Review Focus 1
     assert e.value.message == "Cannot find manifest for dep."
 
 
-def test_rejects_installer_action_in_dependency_kind():
-    with pytest.raises(ManifestError, match=r"Invalid manifest for dep\."):
-        parse({"Steps": [{"action": "run_script", "script": "true"}]}, ProgramKind.DEPENDENCY, "dep")
-
-
-def test_rejects_unknown_installer_action_but_accepts_the_two_legacy_spellings():
-    with pytest.raises(ManifestError, match="Installer is not well configured"):
-        parse(_installer(Steps=[{"action": "override_dll", "dll": "x"}]), ProgramKind.INSTALLER, "x")
+def test_lax_lowers_an_unknown_action_to_a_no_op_as_the_old_loops_did():
     program = parse(
-        _installer(
-            Steps=[
-                {"action": "set_windows", "version": "win10"},
-                {"action": "check_file_exist", "path": "homedir/.itch/itch"},
-            ]
-        ),
-        ProgramKind.INSTALLER,
-        "x",
+        {"Steps": [{"action": "run_script", "script": "true", "for": ["win64"]}]},
+        ProgramKind.DEPENDENCY,
+        "dep",
     )
-    assert [type(op) for op in program.ops] == [LegacySetWindows, LegacyCheckFileExist]
+    assert [type(op) for op in program.ops] == [LegacyNoop]
+    assert program.ops[0].spelling == "run_script" and program.ops[0].arches == ("win64",)
+    assert program.ops[0].describe() == "Running run script..."  # the old fallback text
+    program = parse(_installer(Steps=[{"action": "override_dll", "dll": "x"}]), ProgramKind.INSTALLER, "x")
+    assert program.ops[0].opcode == "legacy_noop" and program.ops[0].spelling == "override_dll"
 
 
-def test_rejects_a_key_no_opcode_defines():
+def test_strict_rejects_an_action_outside_its_program_kind():
     with pytest.raises(ManifestError, match=r"Invalid manifest for dep\."):
-        parse({"Steps": [{"action": "register_dll", "dlls": ["a"], "bogus": 1}]}, ProgramKind.DEPENDENCY, "dep")
+        parse({"Steps": [{"action": "run_script", "script": "true"}]}, ProgramKind.DEPENDENCY, "dep", strict=True)
+    with pytest.raises(ManifestError, match="Installer is not well configured"):
+        parse(_installer(Steps=[{"action": "override_dll", "dll": "x"}]), ProgramKind.INSTALLER, "x", strict=True)
+
+
+def test_the_two_legacy_spellings_lower_lax_and_fail_strict():
+    manifest = _installer(
+        Steps=[
+            {"action": "set_windows", "version": "win10"},
+            {"action": "check_file_exist", "path": "homedir/.itch/itch"},
+        ]
+    )
+    program = parse(manifest, ProgramKind.INSTALLER, "x")
+    assert [type(op) for op in program.ops] == [LegacySetWindows, LegacyCheckFileExist]
+    with pytest.raises(ManifestError, match="Installer is not well configured"):
+        parse(manifest, ProgramKind.INSTALLER, "x", strict=True)
+
+
+def test_lax_drops_a_key_no_opcode_defines_and_strict_rejects_it():
+    manifest = {"Steps": [{"action": "register_dll", "dlls": ["a"], "bogus": 1}]}
+    program = parse(manifest, ProgramKind.DEPENDENCY, "dep")
+    assert program.ops[0].fields() == {"dlls": ("a",)}
+    with pytest.raises(ManifestError, match=r"Invalid manifest for dep\."):
+        parse(manifest, ProgramKind.DEPENDENCY, "dep", strict=True)
 
 
 def test_synonyms_map_to_one_opcode_and_keep_their_spelling():
@@ -119,6 +135,8 @@ def test_corpus_parses_and_the_two_legacy_steps_are_where_expected():
         for path in sorted((CORPUS / folder).rglob("*.yml")):
             try:
                 program = parse_file(str(path), kind)
+                if path.name not in ("starcitizen.yml", "itchio.yml"):
+                    parse_file(str(path), kind, strict=True)
             except ManifestError as e:
                 assert kind is ProgramKind.INSTALLER and e.message == "Installer is not well configured.", path
                 continue
