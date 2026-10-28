@@ -320,6 +320,15 @@ class CLI:
             help="Allow network access in the dedicated sandbox",
         )
 
+        manifest_parser = subparsers.add_parser(
+            "manifest", help="Check a dependency or installer manifest"
+        )
+        manifest_parser.add_argument("verb", choices=["check", "dump"])
+        manifest_parser.add_argument("kind", choices=["dependency", "installer"])
+        manifest_parser.add_argument(
+            "source", help="Catalog name, or path to a manifest YAML file"
+        )
+
         self.__process_args()
 
     @staticmethod
@@ -391,8 +400,36 @@ class CLI:
         elif self.args.command == "umu":
             self.manage_umu()
 
+        elif self.args.command == "manifest":
+            sys.exit(self.manage_manifest())
+
         else:
             self.parser.print_help()
+
+    def manage_manifest(self) -> int:
+        """Parse a manifest from a file or from the catalog and check or dump it."""
+        from bottles.backend.steps.__main__ import main as steps_main
+        from bottles.backend.steps.grammar import ProgramKind
+        from bottles.backend.steps.yaml_frontend import ManifestError, parse
+
+        if os.path.isfile(self.args.source):
+            return steps_main([self.args.verb, self.args.kind, self.args.source])
+
+        manager = Manager(g_settings=self.settings, is_cli=True)
+        if self.args.kind == "dependency":
+            manifest = manager.dependency_manager.get_dependency(self.args.source)
+        else:
+            manifest = manager.installer_manager.get_installer(self.args.source)
+        try:
+            program = parse(manifest, ProgramKind(self.args.kind), self.args.source)
+        except ManifestError as error:
+            sys.stderr.write(error.message + "\n")
+            return 1
+        if self.args.verb == "dump":
+            text = program.dump()
+            if text:
+                print(text)
+        return 0
 
     def manage_umu(self):
         manager = Manager(g_settings=self.settings, is_cli=True)

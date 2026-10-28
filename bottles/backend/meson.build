@@ -13,6 +13,7 @@ subdir('utils')
 subdir('dlls')
 subdir('repos')
 subdir('managers')
+subdir('steps')
 subdir('umu')
 
 bottles_sources = [
