@@ -10,7 +10,8 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-# E402/E701/F841 are violated across the tree today and are only style; they are
-# ignored so `ruff check` passes without reformatting the code (see the TODO in
-# .pre-commit-config.yaml). Correctness rules such as F821 stay enforced.
+# E402 and E701 are style; F841 (unused local) is a correctness smell. All three
+# are violated across the tree today and are ignored only so `ruff check` passes
+# without a tree-wide rewrite (see the TODO in .pre-commit-config.yaml). Rules
+# such as F821 that mean a crash stay enforced.
 ignore = ["F401", "F402", "E722", "E741", "E402", "E701", "F841"]

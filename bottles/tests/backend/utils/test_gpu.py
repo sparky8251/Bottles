@@ -31,7 +31,15 @@ def test_nouveau_detection_reads_proc_modules(monkeypatch, tmp_path):
     modules = tmp_path / "modules"
     modules.write_text("amdgpu 1 0 - Live 0x0\nnouveau 2 0 - Live 0x0\n")
     monkeypatch.setattr(gpu_module, "PROC_MODULES", str(modules))
+    monkeypatch.setattr(gpu_module, "SYSFS_MODULE_NOUVEAU", str(tmp_path / "no-sysfs"))
 
+    assert GPUUtils.is_nouveau() is True
+
+
+def test_nouveau_detection_sees_a_built_in_driver_through_sysfs(monkeypatch, tmp_path):
+    (tmp_path / "nouveau").mkdir()
+    monkeypatch.setattr(gpu_module, "SYSFS_MODULE_NOUVEAU", str(tmp_path / "nouveau"))
+    monkeypatch.setattr(gpu_module, "PROC_MODULES", str(tmp_path / "no-proc"))
     assert GPUUtils.is_nouveau() is True
 
 
@@ -39,6 +47,7 @@ def test_nouveau_detection_ignores_prefix_matches_and_missing_file(monkeypatch, 
     modules = tmp_path / "modules"
     modules.write_text("nouveau_extra 1 0 - Live 0x0\n")
     monkeypatch.setattr(gpu_module, "PROC_MODULES", str(modules))
+    monkeypatch.setattr(gpu_module, "SYSFS_MODULE_NOUVEAU", str(tmp_path / "no-sysfs"))
     assert GPUUtils.is_nouveau() is False
 
     monkeypatch.setattr(gpu_module, "PROC_MODULES", str(tmp_path / "absent"))

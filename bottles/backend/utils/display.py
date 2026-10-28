@@ -1,4 +1,5 @@
 import os
+import socket
 from functools import lru_cache
 
 
@@ -18,15 +19,25 @@ class DisplayUtils:
         if os.environ.get(env_var):
             return os.environ.get(env_var)
 
-        # Without DISPLAY, probe the first few display numbers by their
-        # sockets. Asking xdpyinfo only recognised servers that print "x.org",
-        # which Xwayland and other servers do not, and needed a binary neither
-        # shipped artifact carries.
+        # Without DISPLAY, probe the first few display numbers through their
+        # sockets, as xdpyinfo did before; neither shipped artifact carries
+        # that binary. Connecting, not just finding the file, keeps a stale
+        # socket left by a crashed server from counting as a display.
         for i in ports_range:
-            if os.path.exists(os.path.join(X11_SOCKET_DIR, f"X{i}")):
+            if DisplayUtils._server_answers(os.path.join(X11_SOCKET_DIR, f"X{i}")):
                 return f":{i}"
 
         return False
+
+    @staticmethod
+    def _server_answers(socket_path: str) -> bool:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+            probe.settimeout(1)
+            try:
+                probe.connect(socket_path)
+            except OSError:
+                return False
+        return True
 
     @staticmethod
     def display_server_type():

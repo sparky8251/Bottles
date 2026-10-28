@@ -25,8 +25,11 @@ from bottles.backend.utils.vulkan import VulkanUtils
 
 logging = Logger()
 
-# Overridden by tests; the real file is kernel-provided and read-only.
+# Overridden by tests; both are kernel-provided and read-only. /sys/module
+# also lists drivers built into the kernel, which /proc/modules does not,
+# but the flatpak sandbox does not mount /sys/module at all.
 PROC_MODULES = "/proc/modules"
+SYSFS_MODULE_NOUVEAU = "/sys/module/nouveau"
 SYSFS_PCI_DEVICES = "/sys/bus/pci/devices"
 
 # The raw PCI ids behind what `lspci | grep` used to match: the class names
@@ -90,14 +93,16 @@ class GPUUtils:
 
     @staticmethod
     def is_nouveau():
-        # /proc/modules is the one loaded-module list visible from inside the
-        # flatpak sandbox: /sys/module is not mounted there and lsmod is not
-        # shipped by the runtime, so both earlier approaches never fired.
-        try:
-            with open(PROC_MODULES, encoding="utf-8") as modules:
-                loaded = any(line.split(" ", 1)[0] == "nouveau" for line in modules)
-        except OSError:
-            return False
+        # /sys/module catches a built-in nouveau where sysfs is visible;
+        # /proc/modules is what the flatpak sandbox exposes, where lsmod,
+        # the previous fallback, was never shipped.
+        loaded = os.path.isdir(SYSFS_MODULE_NOUVEAU)
+        if not loaded:
+            try:
+                with open(PROC_MODULES, encoding="utf-8") as modules:
+                    loaded = any(line.split(" ", 1)[0] == "nouveau" for line in modules)
+            except OSError:
+                return False
         if loaded:
             logging.warning("Nouveau driver detected, this may cause issues")
         return loaded

@@ -35,14 +35,23 @@ def test_get_x_display_prefers_environment(monkeypatch):
     DisplayUtils.get_x_display.cache_clear()
 
 
-def test_get_x_display_falls_back_to_server_sockets(monkeypatch, tmp_path):
+def test_get_x_display_falls_back_to_an_answering_server_socket(monkeypatch, tmp_path):
+    import socket
+
     DisplayUtils.get_x_display.cache_clear()
     monkeypatch.delenv("DISPLAY", raising=False)
     monkeypatch.setattr(display_module, "X11_SOCKET_DIR", str(tmp_path))
 
     assert DisplayUtils.get_x_display() is False
 
+    # a socket file nobody listens on, as left behind by a crashed server
     DisplayUtils.get_x_display.cache_clear()
-    (tmp_path / "X1").touch()
-    assert DisplayUtils.get_x_display() == ":1"
+    (tmp_path / "X0").touch()
+    assert DisplayUtils.get_x_display() is False
+
+    DisplayUtils.get_x_display.cache_clear()
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
+        server.bind(str(tmp_path / "X1"))
+        server.listen(1)
+        assert DisplayUtils.get_x_display() == ":1"
     DisplayUtils.get_x_display.cache_clear()
