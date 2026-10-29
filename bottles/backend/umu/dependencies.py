@@ -45,18 +45,28 @@ class UmuDependencyInstaller:
                 raise UmuDependencyError(f"Invalid Bottles dependency {name}")
             if not all(isinstance(dependency, str) for dependency in dependencies):
                 raise UmuDependencyError(f"Invalid dependency chain for {name}")
-            try:
-                program = parse(manifest, ProgramKind.DEPENDENCY, name)
-            except ManifestError as error:
-                raise UmuDependencyError(error.message) from error
 
+            # prerequisites first, as the old planner did, so their problems
+            # are reported ahead of the parent's
             visiting.add(name)
-            for dependency in program.header.dependencies:
+            for dependency in dependencies:
                 visit(dependency)
             try:
+                program = parse(manifest, ProgramKind.DEPENDENCY, name)
                 check_umu_target(program)
             except ManifestError as error:
                 raise UmuDependencyError(error.message) from error
+            # an explicit `environment: null` lowers to the same None as an
+            # absent key, so the old refusal of it is checked on the step
+            for step in steps:
+                if (
+                    isinstance(step, dict)
+                    and step.get("action") == "install_exe"
+                    and not isinstance(step.get("environment", {}), dict)
+                ):
+                    raise UmuDependencyError(
+                        f"Bottles dependency {name} has an invalid environment"
+                    )
             visiting.remove(name)
             visited.add(name)
             planned.append((name, program))

@@ -11,3 +11,8 @@ runtime, at the commits pinned in `bottles/backend/managers/repository.py`:
 The golden traces in `../golden/` were produced from these files by
 `../legacy_capture.py` running against the interpreters as they were
 before the steps package existed. Regenerate them only from that commit.
+
+What the golden traces cannot see: values are JSON-normalised, so Python
+type (list vs tuple) is not part of the contract (a unit test pins it), and
+`__describe_step` was replaced by a recorder during capture, so progress
+text is checked by unit tests rather than by the traces.

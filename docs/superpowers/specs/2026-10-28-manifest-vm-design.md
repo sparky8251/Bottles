@@ -82,6 +82,19 @@ opcode defines lowers to the generic `legacy_noop`, carrying the spelling,
 because that is what both old loops did; in strict mode all three are
 parse errors.
 
+### Two namespaces
+
+Manifest keys and opcode attributes are different namespaces, mapped
+explicitly. The keys an opcode accepts are exactly the fields it declares
+itself (`manifest_fields`, computed from the dataclass), never anything
+inherited from `Op`, so adding an attribute to `Op` can never become a
+reserved word in a manifest. A YAML list becomes a tuple only where the
+declared type is a tuple, which marks the fields handlers iterate;
+everything else keeps the manifest's own type because handlers forward it
+as a value (gfw.yml's `arguments: [/nodotnet /q]` is one). A missing key
+is `None`, so a moved body fails on it the way the old handler failed on
+`step.get(...)`.
+
 ### Attributes on every opcode
 
 - `arches`: from `for`, default both. Matched by substring against the
@@ -128,7 +141,7 @@ state between opcodes beyond what the executor keeps on disk.
 
 ## Executor
 
-A Protocol with one method per opcode, 22 in all. An executor that omits a
+A Protocol with one method per opcode, 23 in all (the 22 spelled opcodes plus `legacy_noop`). An executor that omits a
 method is a mypy error. Two implementations ship:
 
 - `BottleExecutor`: today's `__step_*` bodies from `dependency.py` and the
@@ -181,9 +194,10 @@ One validator replaces three. It takes the strictest accept set, which is
 the user sees the same rejection one click earlier. Nothing in the pinned
 corpus is affected.
 
-Program queries replace dict walks: `count_steps`,
-`has_local_resources`, and the cached-file scan in `is_dependency_cached`
-become methods on the program.
+The cached-file scan in `is_dependency_cached` becomes a program query.
+`count_steps` and `has_local_resources` keep reading the manifest dict,
+because the installer dialog sizes itself and asks for local files before
+`install()` can refuse the manifest, and the old code did the same.
 
 ## CLI
 
@@ -267,10 +281,30 @@ parser's, and neither the installer loop nor umu filters steps by `for`
 (the machine runs them with `arch=None`; only dependency programs are
 arch-filtered, as before).
 
-The one deliberate difference: `is_dependency_cached` uses the install
-validator's accept set rather than its own slightly looser one, so a
-manifest the old cache check called cached and the install then rejected
-now shows as not cached. Same outcome, one click earlier.
+The deliberate differences, all on malformed manifests outside the corpus:
+
+- `is_dependency_cached` uses the install validator's accept set rather
+  than its own slightly looser one, so a manifest the old cache check
+  called cached and the install then rejected now shows as not cached.
+  Same outcome, one click earlier. It also reads `url` only from opcodes
+  that define one; the old walk read `url` from every step.
+- umu's planner recurses prerequisites first as before, but parses the
+  parent before its own per-step checks, so a step with a non-string `url`,
+  `file_name`, `rename`, `file_checksum` or `for`, or a non-dict step,
+  reports "Invalid manifest for X." where it used to report "has an
+  invalid download" or "unsupported UMU action unknown".
+- Three malformed inputs that crashed the old code with a traceback now
+  stop with the manifest's error message at the same point, before any
+  side effect: an installer `install_exe`/`install_msi` without a `url`
+  (old: `KeyError('url')`), an installer whose `Dependencies` is not a
+  list (old: iterated whatever it was), and a dependency `uninstall`
+  without a `file_name` (old: `KeyError('file_name')`).
+
+List values from the manifest keep their Python type unless the opcode
+iterates the field (`dlls`, `fonts`, `replace`, `success_codes`, `bundle`,
+`commands`, `monitoring`, `for`), because handlers forward the others as
+values into command lines; the recorder's JSON trace cannot see that
+distinction, so a unit test pins it.
 
 ## Later, and not precluded
 

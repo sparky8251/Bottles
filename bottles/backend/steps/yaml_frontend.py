@@ -70,6 +70,10 @@ def _parse_dependency(manifest: dict, name: str, strict: bool) -> Program:
         for key in ("url", "file_name", "rename", "file_checksum"):
             if not isinstance(step.get(key, ""), str):
                 raise invalid
+        # the old dispatcher indexed step["file_name"] for uninstall before
+        # anything else; a missing one never ran
+        if step["action"] == "uninstall" and not isinstance(step.get("file_name"), str):
+            raise invalid
 
     uninstaller = manifest.get("Uninstaller")
     conflicts = manifest.get("Conflicts")
@@ -102,12 +106,23 @@ def _parse_installer(manifest: dict, name: str, strict: bool) -> Program:
         not isinstance(step, dict) or not isinstance(step.get("action"), str) for step in steps
     ):
         raise invalid
+    # the old loop indexed st["url"] on install_exe/install_msi before any
+    # side effect, so a missing url never ran anything; refuse it up front
+    if any(
+        step["action"] in ("install_exe", "install_msi") and not isinstance(step.get("url"), str)
+        for step in steps
+    ):
+        raise invalid
 
     dependencies = manifest.get("Dependencies") or []
+    if not isinstance(dependencies, list):
+        raise invalid
     installers = manifest.get("Installers") or []
     header = InstallerHeader(
         name=name,
-        dependencies=tuple(dependencies) if _is_str_list(dependencies) else (),
+        # as written: a bad entry used to reach the dependency manager and
+        # fail there with its own message
+        dependencies=tuple(dependencies),
         parameters=manifest.get("Parameters") or None,
         executables=tuple(executables),
         optional_executables=optional_executables,
@@ -135,12 +150,17 @@ def _lower(steps: list, kind: ProgramKind, invalid: ManifestError, strict: bool)
             if key == "for":
                 values["arches"] = tuple(value) if isinstance(value, list) else value
                 continue
-            if key not in cls.__dataclass_fields__:
+            if key not in cls.manifest_fields:
                 if strict:
                     raise invalid
                 # the old handlers never read it
                 continue
-            values[key] = tuple(value) if isinstance(value, list) else value
+            # a list becomes a tuple only where the grammar types the field as
+            # one (the handler iterates it); anything else keeps the manifest's
+            # own type because handlers forward it as a value
+            if isinstance(value, list) and cls.manifest_fields[key]:
+                value = tuple(value)
+            values[key] = value
         ops.append(cls(**values))
     return tuple(ops)
 
@@ -157,7 +177,7 @@ def check_umu_target(program: Program) -> None:
             if op.url.startswith("temp/"):
                 raise ManifestError(f"Bottles dependency {name} uses a temporary source")
             if op.arguments not in (None, ""):
-                items = op.arguments if isinstance(op.arguments, tuple) else (op.arguments,)
+                items = op.arguments if isinstance(op.arguments, (list, tuple)) else (op.arguments,)
                 if not all(isinstance(item, str) for item in items):
                     raise ManifestError("Invalid dependency arguments")
             if op.environment is not None and not isinstance(op.environment, dict):

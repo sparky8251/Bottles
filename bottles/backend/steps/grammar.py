@@ -6,6 +6,7 @@
 # standard library so `python -m bottles.backend.steps` can parse a manifest
 # on a host with no GTK, no Wine and no bottle.
 import json
+import typing
 from dataclasses import dataclass, fields as dataclass_fields
 from enum import Enum
 from gettext import gettext as _
@@ -31,6 +32,12 @@ class Op:
     # are properties of the opcode, so they live here
     keeps_uninstaller: ClassVar[bool] = True
     halts_on_failure: ClassVar[bool] = False
+    # manifest key -> whether the frontend turns a YAML list into a tuple.
+    # Manifest keys and Op attributes are two namespaces: the keys an opcode
+    # accepts are exactly the fields it declares itself (filled in by
+    # _collect from the dataclass), never anything inherited from Op, so an
+    # attribute added here can never become a reserved word in a manifest.
+    manifest_fields: ClassVar[dict[str, bool]] = {}
 
     arches: Union[str, tuple[str, ...]] = ARCH_BOTH
     # the action name as the manifest wrote it; synonyms share an opcode but
@@ -87,8 +94,8 @@ class DownloadArchive(Op):
     kind = ProgramKind.DEPENDENCY
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     rename: Optional[str] = None
     file_checksum: Optional[str] = None
     file_size: Optional[int] = None
@@ -104,12 +111,13 @@ class InstallFile(Op):
     kind = ProgramKind.DEPENDENCY
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     rename: Optional[str] = None
     file_checksum: Optional[str] = None
     file_size: Optional[int] = None
-    arguments: Union[str, tuple[str, ...], None] = None
+    # forwarded as written (umu splits it; the bottle executor passes it on)
+    arguments: Union[str, list, None] = None
     environment: Optional[dict] = None
     success_codes: Optional[tuple[int, ...]] = None
 
@@ -125,8 +133,8 @@ class ArchiveExtract(Op):
     keeps_uninstaller = False
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     rename: Optional[str] = None
     file_checksum: Optional[str] = None
     file_size: Optional[int] = None
@@ -144,8 +152,8 @@ class CabExtract(Op):
     keeps_uninstaller = False
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     rename: Optional[str] = None
     file_checksum: Optional[str] = None
     file_size: Optional[int] = None
@@ -180,8 +188,8 @@ class CopyFile(Op):
     keeps_uninstaller = False
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     dest: Optional[str] = None
 
     def describe(self) -> str:
@@ -209,8 +217,8 @@ class InstallFonts(Op):
     keeps_uninstaller = False
     halts_on_failure = True
 
-    url: str = ""
-    fonts: tuple[str, ...] = ()
+    url: Optional[str] = None
+    fonts: Optional[tuple[str, ...]] = None
 
     def describe(self) -> str:
         return _("Installing fonts…")
@@ -318,7 +326,7 @@ class Uninstall(Op):
     spellings = ("uninstall",)
     kind = ProgramKind.DEPENDENCY
 
-    file_name: str = ""
+    file_name: Optional[str] = None
 
     def describe(self) -> str:
         return _("Running uninstaller…")
@@ -334,11 +342,12 @@ class InstallerRunFile(Op):
     kind = ProgramKind.INSTALLER
     halts_on_failure = True
 
-    url: str = ""
-    file_name: str = ""
+    url: Optional[str] = None
+    file_name: Optional[str] = None
     rename: Optional[str] = None
     file_checksum: Union[str, bool, None] = None
-    arguments: Union[str, tuple[str, ...], None] = None
+    # forwarded as written (umu splits it; the bottle executor passes it on)
+    arguments: Union[str, list, None] = None
     environment: Optional[dict] = None
     monitoring: Optional[tuple[str, ...]] = None
 
@@ -353,7 +362,7 @@ class RunScript(Op):
     kind = ProgramKind.INSTALLER
     halts_on_failure = True
 
-    script: str = ""
+    script: Optional[str] = None
 
     def describe(self) -> str:
         return "installer script"
@@ -378,7 +387,7 @@ class UpdateConfig(Op):
     spellings = ("update_config",)
     kind = ProgramKind.INSTALLER
 
-    path: str = ""
+    path: Optional[str] = None
     type: Optional[str] = None
     del_keys: Optional[dict] = None
     upd_keys: Optional[dict] = None
@@ -431,9 +440,29 @@ class LegacyNoop(Op):
         return _("Running {0}...").format(self.spelling.replace("_", " "))
 
 
+def _is_tuple_type(annotation: object) -> bool:
+    """True when the declared type is a tuple, possibly inside Optional/Union."""
+    origin = typing.get_origin(annotation)
+    if origin is Union:
+        return any(_is_tuple_type(arg) for arg in typing.get_args(annotation))
+    return origin is tuple or annotation is tuple
+
+
 def _collect() -> dict[ProgramKind, dict[str, type[Op]]]:
     table: dict[ProgramKind, dict[str, type[Op]]] = {kind: {} for kind in ProgramKind}
-    for cls in Op.__subclasses__():
+    inherited = {f.name for f in dataclass_fields(Op)}
+
+    def subclasses(base):
+        for cls in base.__subclasses__():
+            yield cls
+            yield from subclasses(cls)
+
+    for cls in subclasses(Op):
+        cls.manifest_fields = {
+            f.name: _is_tuple_type(f.type)
+            for f in dataclass_fields(cls)
+            if f.name not in inherited
+        }
         for spelling in cls.spellings:
             assert spelling not in table[cls.kind], (cls.kind, spelling)
             table[cls.kind][spelling] = cls
@@ -463,7 +492,7 @@ class DependencyHeader:
 @dataclass(frozen=True)
 class InstallerHeader:
     name: str
-    dependencies: tuple[str, ...] = ()
+    dependencies: tuple = ()
     parameters: Optional[dict] = None
     executables: tuple[dict, ...] = ()
     # True when the manifest used the plural `Executables` key: those programs
@@ -495,13 +524,6 @@ class Program:
             file = getattr(op, "rename", None) or getattr(op, "file_name", None) or ""
             found.append((file, getattr(op, "file_checksum", None) or ""))
         return found
-
-    def local_resource_files(self) -> list[str]:
-        return [
-            op.file_name
-            for op in self.ops
-            if isinstance(op, InstallerRunFile) and op.url == "local"
-        ]
 
     def dump(self) -> str:
         return "\n".join(op.dump() for op in self.ops)

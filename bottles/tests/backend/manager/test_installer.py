@@ -808,3 +808,19 @@ def test_installer_steps_ignore_for_as_the_old_loop_did(mocker):
 
     assert result.ok, result.data
     assert executor.call_count == 1
+
+
+def test_count_steps_and_local_resources_fall_back_to_the_raw_manifest(mocker):
+    # note 3: the old code counted from the dict before the executable check
+    # could fail, so the dialog sized itself and asked for local files first
+    installer = object.__new__(InstallerManager)
+    manifest = {
+        "Name": "x",
+        "Dependencies": ["a", "b"],
+        "Parameters": {"dxvk": True},
+        "Steps": [{"action": "install_exe", "url": "local", "file_name": "setup.exe"}],
+        "Checks": {"files": ["x"]},
+    }
+    mocker.patch.object(installer, "get_installer", return_value=manifest)
+    assert installer.count_steps(["x"]) == {"total": 5, "sections": ["deps", "deps", "params", "steps", "checks"]}
+    assert installer.has_local_resources(["x"]) == ["setup.exe"]

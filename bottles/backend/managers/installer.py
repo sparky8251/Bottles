@@ -235,42 +235,47 @@ class InstallerManager:
                 config=config, key=k, value=v, scope="Parameters"
             )
 
-    def __program(self, name: str):
-        try:
-            return parse(self.get_installer(name), ProgramKind.INSTALLER, name)
-        except ManifestError:
-            return None
-
     def count_steps(self, installer) -> dict:
-        program = self.__program(installer[0])
+        # the dialog sizes itself before install() can refuse the manifest, so
+        # this reads the dict as the old code did
+        manifest = self.get_installer(installer[0])
         steps = {"total": 0, "sections": []}
-        if program is None:
+        if not isinstance(manifest, dict):
             return steps
-        header = program.header
-        if header.dependencies:
-            i = len(header.dependencies)
+        if manifest.get("Dependencies"):
+            i = int(len(manifest.get("Dependencies")))
             steps["sections"] += i * ["deps"]
             steps["total"] += i
-        if header.parameters:
+        if manifest.get("Parameters"):
             steps["sections"].append("params")
             steps["total"] += 1
-        if program.ops:
-            i = len(program.ops)
+        if manifest.get("Steps"):
+            i = int(len(manifest.get("Steps")))
             steps["sections"] += i * ["steps"]
             steps["total"] += i
-        if header.executables:
+        if manifest.get("Executable") or manifest.get("Executables"):
             steps["sections"].append("exe")
             steps["total"] += 1
-        if header.checks:
+        if manifest.get("Checks"):
             steps["sections"].append("checks")
             steps["total"] += 1
         return steps
 
     def has_local_resources(self, installer):
-        program = self.__program(installer[0])
-        if program is None:
+        manifest = self.get_installer(installer[0])
+        if not isinstance(manifest, dict):
             return []
-        return program.local_resource_files()
+        steps = manifest.get("Steps", [])
+        exe_msi_steps = [
+            s
+            for s in steps
+            if s.get("action", "") in ["install_exe", "install_msi"]
+            and s.get("url", "") == "local"
+        ]
+        if len(exe_msi_steps) == 0:
+            return []
+        files = [s.get("file_name", "") for s in exe_msi_steps]
+        return files
 
     def install(
         self,

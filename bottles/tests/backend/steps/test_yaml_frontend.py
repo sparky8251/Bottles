@@ -154,3 +154,94 @@ def test_frontend_imports_nothing_from_gtk_or_wine():
     )
     out = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True, check=True)
     assert json.loads(out.stdout) == []
+
+
+def test_list_values_keep_their_python_type_unless_the_opcode_iterates_them():
+    # review C1: gfw.yml writes `arguments: [/nodotnet /q]`; the handler
+    # forwards the value into an f-string, so a tuple would render differently
+    program = parse(
+        {
+            "Steps": [
+                {"action": "install_exe", "url": "u", "file_name": "f.exe", "arguments": ["/nodotnet /q"]},
+                {"action": "register_dll", "dlls": ["a", "b"]},
+            ]
+        },
+        ProgramKind.DEPENDENCY,
+        "gfw",
+    )
+    assert program.ops[0].arguments == ["/nodotnet /q"] and type(program.ops[0].arguments) is list
+    assert program.ops[1].dlls == ("a", "b")
+    gfw = parse_file(str(CORPUS / "dependencies/Essentials/gfw.yml"), ProgramKind.DEPENDENCY)
+    assert f"{gfw.ops[0].arguments}" == "['/nodotnet /q']"
+
+
+def test_missing_url_is_absent_not_empty():
+    # review I1: umu refused an install_exe without a url as "invalid download"
+    program = parse({"Steps": [{"action": "install_exe", "file_name": "a.exe"}]}, ProgramKind.DEPENDENCY, "d")
+    assert program.ops[0].url is None
+    with pytest.raises(ManifestError, match="has an invalid download"):
+        check_umu_target(program)
+
+
+@pytest.mark.parametrize(
+    "key", ["arches", "spelling", "opcode", "spellings", "kind", "keeps_uninstaller", "halts_on_failure"]
+)
+def test_op_attribute_names_are_not_manifest_keys(key):
+    # reviews I2 and I-A: manifest keys and Op attributes are two namespaces;
+    # a key spelled like an attribute is an unknown key (dropped lax, rejected
+    # strict), never a way to set the attribute and never a TypeError
+    manifest = {"Steps": [{"action": "register_dll", "dlls": ["a"], key: "win32"}]}
+    op = parse(manifest, ProgramKind.DEPENDENCY, "d").ops[0]
+    assert op.applies_to("win64") and op.spelling == "register_dll" and op.opcode == "register_dll"
+    assert op.kind is ProgramKind.DEPENDENCY and op.halts_on_failure is False
+    with pytest.raises(ManifestError, match=r"Invalid manifest for d\."):
+        parse(manifest, ProgramKind.DEPENDENCY, "d", strict=True)
+
+
+def test_missing_iterated_or_string_fields_are_absent_so_the_bodies_fail_as_before():
+    # review M-A..M-C: the old handlers crashed on a missing fonts/script/path;
+    # a default of ()/"" would have turned that into a silent success
+    program = parse(
+        {"Steps": [{"action": "install_fonts", "url": "temp/x"}]}, ProgramKind.DEPENDENCY, "d"
+    )
+    assert program.ops[0].fonts is None
+    program = parse(
+        _installer(Steps=[{"action": "run_script"}, {"action": "update_config", "type": "ini"}]),
+        ProgramKind.INSTALLER,
+        "x",
+    )
+    assert program.ops[0].script is None and program.ops[1].path is None
+
+
+def test_installer_run_file_requires_a_url():
+    # review M-D: the old loop raised KeyError('url') before any side effect;
+    # the validator now refuses the manifest instead (documented)
+    with pytest.raises(ManifestError, match="Installer is not well configured"):
+        parse(_installer(Steps=[{"action": "install_exe", "file_name": "a.exe"}]), ProgramKind.INSTALLER, "x")
+
+
+def test_installer_dependencies_pass_through_as_written():
+    # note 6: a bad entry used to reach the dependency manager and fail with
+    # "Failed to install 3. Cannot find manifest for 3."; it must not be dropped
+    program = parse(_installer(Dependencies=["vcredist2010", 3]), ProgramKind.INSTALLER, "x")
+    assert program.header.dependencies == ("vcredist2010", 3)
+    with pytest.raises(ManifestError, match="Installer is not well configured"):
+        parse(_installer(Dependencies="vcredist2010"), ProgramKind.INSTALLER, "x")
+
+
+def test_uninstall_requires_a_file_name():
+    # note 8: the old dispatcher indexed step["file_name"] and crashed
+    with pytest.raises(ManifestError, match=r"Invalid manifest for d\."):
+        parse({"Steps": [{"action": "uninstall"}]}, ProgramKind.DEPENDENCY, "d")
+
+
+def test_collect_registers_subclasses_of_subclasses():
+    # note 7
+    from bottles.backend.steps import grammar
+
+    class Nested(grammar.SetWindows):
+        opcode = "nested_set_windows"
+        spellings = ("nested_set_windows",)
+
+    assert grammar._collect()[ProgramKind.DEPENDENCY]["nested_set_windows"] is Nested
+    assert Nested.manifest_fields == {"version": False, "executable": False}

@@ -272,3 +272,30 @@ def test_umu_plan_keeps_its_own_messages_for_a_malformed_manifest(monkeypatch, t
         installer._plan(("steps",), set())
     with pytest.raises(UmuDependencyError, match="Invalid dependency chain for chain"):
         installer._plan(("chain",), set())
+
+
+def test_umu_plan_visits_prerequisites_before_judging_the_parent(monkeypatch, tmp_path):
+    # note 2: the old planner recursed first, so a missing prerequisite was
+    # reported ahead of the parent's own problems
+    installer, _repository, _game, _downloads, _executor = _installer(
+        tmp_path,
+        monkeypatch,
+        {"parent": {"Dependencies": ["missing"], "Steps": [{"action": "install_exe", "url": "u", "file_name": "a.exe", "rename": 5}]}},
+    )
+    from bottles.backend.umu.dependencies import UmuDependencyError
+
+    with pytest.raises(UmuDependencyError, match="Cannot find Bottles dependency missing"):
+        installer._plan(("parent",), set())
+
+
+def test_umu_plan_rejects_an_explicit_null_environment(monkeypatch, tmp_path):
+    # note 5: umu's old validator refused `environment: null`
+    installer, _repository, _game, _downloads, _executor = _installer(
+        tmp_path,
+        monkeypatch,
+        {"d": {"Dependencies": [], "Steps": [{"action": "install_exe", "url": "u", "file_name": "a.exe", "environment": None}]}},
+    )
+    from bottles.backend.umu.dependencies import UmuDependencyError
+
+    with pytest.raises(UmuDependencyError, match="has an invalid environment"):
+        installer._plan(("d",), set())
