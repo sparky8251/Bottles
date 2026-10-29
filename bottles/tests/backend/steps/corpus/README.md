@@ -8,9 +8,13 @@ runtime, at the commits pinned in `bottles/backend/managers/repository.py`:
 - installers: bottlesdevs/programs @ 9a21e3997f19e8388d2100c3500369ee2fe0239c
   (all `*.yml` except `index.yml` and `_trash/`)
 
-The golden traces in `../golden/` were produced from these files by
-`../legacy_capture.py` running against the interpreters as they were
-before the steps package existed. Regenerate them only from that commit.
+The golden traces in `../golden/` were produced from these files against
+the interpreters as they were before the steps package existed (commit
+31aabeb6): `*.jsonl` by `../legacy_capture.py` (what enters the executor:
+opcode, fields, arch skip, uninstaller flag) and `egress-*.jsonl` by
+`../legacy_egress_capture.py` (what leaves it: every side-effect call with
+its arguments). Regenerate either only from that commit; the egress
+script's header has the worktree incantation.
 
 What the golden traces cannot see: values are JSON-normalised, so Python
 type (list vs tuple) is not part of the contract (a unit test pins it), and
