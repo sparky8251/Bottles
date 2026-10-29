@@ -135,12 +135,12 @@ def _parse_installer(manifest: dict, name: str, strict: bool) -> Program:
 def _lower(steps: list, kind: ProgramKind, invalid: ManifestError, strict: bool) -> tuple[Op, ...]:
     table = OPCODES[kind]
     ops = []
-    for step in steps:
+    for index, step in enumerate(steps):
         action = step["action"]
         cls = table.get(action)
         if cls is None or (strict and cls.opcode.startswith("legacy_")):
             if strict:
-                raise invalid
+                raise _strict_error(invalid, index, action, "unknown action")
             # the old loops fell through on an action they did not know
             cls = LegacyNoop
         values = {"spelling": action}
@@ -152,7 +152,7 @@ def _lower(steps: list, kind: ProgramKind, invalid: ManifestError, strict: bool)
                 continue
             if key not in cls.manifest_fields:
                 if strict:
-                    raise invalid
+                    raise _strict_error(invalid, index, action, f"unknown key {key!r}")
                 # the old handlers never read it
                 continue
             # a list becomes a tuple only where the grammar types the field as
@@ -163,6 +163,12 @@ def _lower(steps: list, kind: ProgramKind, invalid: ManifestError, strict: bool)
             values[key] = value
         ops.append(cls(**values))
     return tuple(ops)
+
+
+def _strict_error(invalid: ManifestError, index: int, action: str, reason: str) -> ManifestError:
+    # lax mode must show the old UI string; strict mode is a lint for manifest
+    # authors and may say where it stopped
+    return ManifestError(f"{invalid.message.rstrip('.')}: step {index + 1} ({action}): {reason}.")
 
 
 def check_umu_target(program: Program) -> None:

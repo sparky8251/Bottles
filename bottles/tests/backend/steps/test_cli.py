@@ -54,4 +54,4 @@ def test_strict_rejects_what_lax_tolerates():
     assert _run("check", "installer", path).returncode == 0
     strict = _run("check", "installer", path, "--strict")
     assert strict.returncode == 1
-    assert strict.stderr.strip() == "Installer is not well configured."
+    assert strict.stderr.strip() == "Installer is not well configured: step 1 (set_windows): unknown action."

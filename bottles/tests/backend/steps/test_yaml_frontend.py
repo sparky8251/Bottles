@@ -47,7 +47,7 @@ def test_lax_lowers_an_unknown_action_to_a_no_op_as_the_old_loops_did():
 
 
 def test_strict_rejects_an_action_outside_its_program_kind():
-    with pytest.raises(ManifestError, match=r"Invalid manifest for dep\."):
+    with pytest.raises(ManifestError, match=r"Invalid manifest for dep: step 1 \(run_script\): unknown action\."):
         parse({"Steps": [{"action": "run_script", "script": "true"}]}, ProgramKind.DEPENDENCY, "dep", strict=True)
     with pytest.raises(ManifestError, match="Installer is not well configured"):
         parse(_installer(Steps=[{"action": "override_dll", "dll": "x"}]), ProgramKind.INSTALLER, "x", strict=True)
@@ -70,7 +70,7 @@ def test_lax_drops_a_key_no_opcode_defines_and_strict_rejects_it():
     manifest = {"Steps": [{"action": "register_dll", "dlls": ["a"], "bogus": 1}]}
     program = parse(manifest, ProgramKind.DEPENDENCY, "dep")
     assert program.ops[0].fields() == {"dlls": ("a",)}
-    with pytest.raises(ManifestError, match=r"Invalid manifest for dep\."):
+    with pytest.raises(ManifestError, match=r"Invalid manifest for dep: step 1 \(register_dll\): unknown key 'bogus'\."):
         parse(manifest, ProgramKind.DEPENDENCY, "dep", strict=True)
 
 
@@ -194,7 +194,7 @@ def test_op_attribute_names_are_not_manifest_keys(key):
     op = parse(manifest, ProgramKind.DEPENDENCY, "d").ops[0]
     assert op.applies_to("win64") and op.spelling == "register_dll" and op.opcode == "register_dll"
     assert op.kind is ProgramKind.DEPENDENCY and op.halts_on_failure is False
-    with pytest.raises(ManifestError, match=r"Invalid manifest for d\."):
+    with pytest.raises(ManifestError, match=r"Invalid manifest for d: step 1 \(register_dll\): unknown key"):
         parse(manifest, ProgramKind.DEPENDENCY, "d", strict=True)
 
 
@@ -236,12 +236,34 @@ def test_uninstall_requires_a_file_name():
 
 
 def test_collect_registers_subclasses_of_subclasses():
-    # note 7
+    # note 7; the class is unregistered afterwards so it cannot reach
+    # Op.__subclasses__() in a later _collect()
+    import gc
+
     from bottles.backend.steps import grammar
 
     class Nested(grammar.SetWindows):
         opcode = "nested_set_windows"
         spellings = ("nested_set_windows",)
 
-    assert grammar._collect()[ProgramKind.DEPENDENCY]["nested_set_windows"] is Nested
-    assert Nested.manifest_fields == {"version": False, "executable": False}
+    try:
+        assert grammar._collect()[ProgramKind.DEPENDENCY]["nested_set_windows"] is Nested
+        assert Nested.manifest_fields == {"version": False, "executable": False}
+    finally:
+        del Nested
+        gc.collect()
+    assert "nested_set_windows" not in grammar._collect()[ProgramKind.DEPENDENCY]
+
+
+def test_strict_errors_say_where_they_stopped():
+    with pytest.raises(ManifestError) as e:
+        parse(
+            _installer(Steps=[{"action": "run_script", "script": "true"}, {"action": "set_windows", "version": "win10"}]),
+            ProgramKind.INSTALLER,
+            "x",
+            strict=True,
+        )
+    assert e.value.message == "Installer is not well configured: step 2 (set_windows): unknown action."
+    with pytest.raises(ManifestError) as e:
+        parse({"Steps": [{"action": "register_dll", "dlls": ["a"], "bogus": 1}]}, ProgramKind.DEPENDENCY, "d", strict=True)
+    assert e.value.message == "Invalid manifest for d: step 1 (register_dll): unknown key 'bogus'."
